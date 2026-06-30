@@ -14,6 +14,8 @@
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 
+;; NEXT: add extra flag to sol pre-evaluating lte.
+
 ;;;;;;;;;;;;;;;
 ;; Functions ;;
 ;;;;;;;;;;;;;;;
