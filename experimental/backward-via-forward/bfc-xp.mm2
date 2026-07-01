@@ -1,7 +1,7 @@
 ;; Port of ofc and obfc from bfc-xp.metta to MM2.
 ;;
 ;; Important: in order to run that code you must first run
-;; gen-fromNumber.mm2 and gen-lte.mm2, in that order.
+;; gen-peano.mm2 and gen-lte.mm2, in that order.
 ;;
 ;; Notes regarding optimization:
 ;;
@@ -49,31 +49,31 @@
 ;; ;; loolin (size=26, time=?)
 ;; !(target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
 
-;; Load fromNumber.  Make sure that gen-fromNumber.mm2 has been
-;; previously executed.
+;; Load Peano to Integer conversion.  Make sure that
+;; gen-peano.mm2 has been previously executed.
 (exec (0)
-      (I (ACT fromNumber (fromNumberFn $x $k)))
-      (, (fromNumberFn $x $k)
-         (toNumberFn $k $x)))
+      (I (ACT peano (toPeanoFn $x $k)))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
 
 ;; Load lte.  Make sure that gen-lte.mm2 has been previously executed.
 (exec (1)
       (I (ACT lte (lte $k $l))
-         (BTM (toNumberFn $k $x))
-         (BTM (toNumberFn $l $y)))
+         (BTM (fromPeanoFn $k $x))
+         (BTM (fromPeanoFn $l $y)))
       (, (lte $x $y)))
 
 ;; Precompute increment and decrement tables for integer.
 (exec (1)
-      (, (toNumberFn $x $y)
-         (toNumberFn (S $x) $sy))
+      (, (fromPeanoFn $x $y)
+         (fromPeanoFn (S $x) $sy))
       (, (incFn $y $sy)
          (decFn $sy $y)))
 
 ;; Turn target into initial source and forward chaining loop
 (exec (2)
       (, (target $mps (c: $ta $tx))
-         (fromNumberFn $mps $mps_n))
+         (toPeanoFn $mps $mps_n))
       (, ;; Initialize source
          (sol $mps 1 (c: (-> $ta $ta) I))
          ;; Expand one step forward
