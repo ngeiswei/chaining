@@ -11,6 +11,9 @@
 ;; 2. Moving the hypotheses count at the end of sol showed no
 ;;    improvement.
 ;;
+;; 3. using c: instead of : in axiom does not change performance.  But
+;;    maybe it is due to the small number of axioms.
+;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 
@@ -20,9 +23,9 @@
 ;; Theory ;;
 ;;;;;;;;;;;;
 
-(axiom (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
-(axiom (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
-(axiom (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+(axiom (c: (→ $𝜑 (→ $𝜓 $𝜑)) ax₁))
+(axiom (c: (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) ax₂))
+(axiom (c: (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) ax₃))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -90,7 +93,7 @@
                (, ;; Apply current proof to axiom
                   (exec (3 0)
                         (, (sol $ski $shi (c: (-> $ap $b) $f))
-                           (axiom (: $an $ap))
+                           (axiom (c: $ap $an))
                            (decFn $shi $hi)
                            (lte $hi $ki))
                         (, (sol $ki $hi (c: $b ($f $an)))))
