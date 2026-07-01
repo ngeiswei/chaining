@@ -86,12 +86,11 @@
                   (exec (2 (S $k)) $ptrn $tplt)
                   ;; Grab corresponding integers
                   (fromPeanoFn (S $k) $ski)
-                  (fromPeanoFn $k $ki)
-                  ;; Grab axioms (: AXIOM_NAME AXIOM_PROPOSITION)
-                  (axiom (: $an $ap)))
+                  (fromPeanoFn $k $ki))
                (, ;; Apply current proof to axiom
                   (exec (3 0)
                         (, (sol $ski $shi (c: (-> $ap $b) $f))
+                           (axiom (: $an $ap))
                            (decFn $shi $hi)
                            (lte $hi $ki))
                         (, (sol $ki $hi (c: $b ($f $an)))))
