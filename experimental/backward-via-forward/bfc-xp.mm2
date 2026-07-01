@@ -16,9 +16,13 @@
 
 ;; NEXT: add extra flag to sol pre-evaluating lte.
 
-;;;;;;;;;;;;;;;
-;; Functions ;;
-;;;;;;;;;;;;;;;
+;;;;;;;;;;;;
+;; Theory ;;
+;;;;;;;;;;;;
+
+(axiom (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -81,34 +85,24 @@
                (, ;; Capture inner self
                   (exec (2 (S $k)) $ptrn $tplt)
                   ;; Grab corresponding integers
-                  (toNumberFn (S $k) $ski)
-                  (toNumberFn $k $ki))
-               (, ;; Apply current proof to axiom-1
+                  (fromPeanoFn (S $k) $ski)
+                  (fromPeanoFn $k $ki)
+                  ;; Grab axioms (: AXIOM_NAME AXIOM_PROPOSITION)
+                  (axiom (: $an $ap)))
+               (, ;; Apply current proof to axiom
                   (exec (3 0)
-                        (, (sol $ski $shi (c: (-> (→ $𝜑 (→ $𝜓 $𝜑)) $b) $f))
+                        (, (sol $ski $shi (c: (-> $ap $b) $f))
                            (decFn $shi $hi)
                            (lte $hi $ki))
-                        (, (sol $ki $hi (c: $b ($f ax₁)))))
-                  ;; Apply current proof to axiom-2
-                  (exec (4 0)
-                        (, (sol $ski $shi (c: (-> (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) $b) $f))
-                           (decFn $shi $hi)
-                           (lte $hi $ki))
-                        (, (sol $ki $hi (c: $b ($f ax₂)))))
-                  ;; Apply current proof to axiom-3
-                  (exec (5 0)
-                        (, (sol $ski $shi (c: (-> (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) $b) $f))
-                           (decFn $shi $hi)
-                           (lte $hi $ki))
-                        (, (sol $ki $hi (c: $b ($f ax₃)))))
+                        (, (sol $ki $hi (c: $b ($f $an)))))
                   ;; Apply mpⁱ to current proof
-                  (exec (6 0)
+                  (exec (4 0)
                         (, (sol $ski $hi (c: (-> $b $c) $f))
                            (lte $hi $ki)
                            (incFn $hi $shi))
                         (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
                   ;; Respawn inner self
-                  (exec (7 0) (,)
+                  (exec (5 0) (,)
                         (, (exec (2 $k) $ptrn $tplt)))))))
 
 ;; Unify solution with target when maximum depth and hypotheses count
