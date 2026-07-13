@@ -16,8 +16,23 @@
 ;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
-
-;; NEXT: add extra flag to sol pre-evaluating lte.
+;;
+;; The solution space is represented as follows
+;;
+;; (sol MPS HYPCNT (AA BB) (c: THRM PRF))
+;;
+;; where
+;; - MPS is the remaining proof size budget.
+;;
+;; - HYPCNT is the number of hypotheses of THRM.
+;;
+;; - AA is a flag indicating whether PRF can be expanded by
+;;   applying it to an axiom.  AA is set to 1 if
+;;   (HYPCNT - 1) <= MPS, 0 otherwise.
+;;
+;; - BB is a flag indicating whether PRF can be expanded by
+;;   applying mpⁱ to it.  BB is set to 1 if
+;;   HYPCNT <= (MPS - 1), 0 otherwise.
 
 ;;;;;;;;;;;;
 ;; Theory ;;
@@ -63,12 +78,12 @@
       (, (toPeanoFn $x $k)
          (fromPeanoFn $k $x)))
 
-;; Load lte.  Make sure that gen-lte.mm2 has been previously executed.
-(exec (1)
-      (I (ACT lte (lte $k $l))
-         (BTM (fromPeanoFn $k $x))
-         (BTM (fromPeanoFn $l $y)))
-      (, (lte $x $y)))
+;; ;; Load lte.  Make sure that gen-lte.mm2 has been previously executed.
+;; (exec (1)
+;;       (I (ACT lte (lte $k $l))
+;;          (BTM (fromPeanoFn $k $x))
+;;          (BTM (fromPeanoFn $l $y)))
+;;       (, (lte $x $y)))
 
 ;; Precompute increment and decrement tables for integer.
 (exec (1)
@@ -81,35 +96,65 @@
 (exec (2)
       (, (target $mps (c: $ta $tx))
          (toPeanoFn $mps $mps_n))
-      (, ;; Initialize source
-         (sol $mps 1 (c: (-> $ta $ta) I))
+      (O ;; Initialize source
+         (pure (sol $mps 1 $aabb (c: (-> $ta $ta) I))
+               $aabb
+               (tuple
+                (ifnz (lte_i8 (sub_i8 (i8_one) (i8_one)) (i8_from_string $mps))
+                      then 1 else 0)
+                (ifnz (lte_i8 (i8_one) (sub_i8 (i8_from_string $mps) (i8_one)))
+                      then 1 else 0)))
          ;; Expand one step forward
-         (exec (2 $mps_n)
-               (, ;; Capture inner self
-                  (exec (2 (S $k)) $ptrn $tplt)
-                  ;; Grab corresponding integers
-                  (fromPeanoFn (S $k) $ski)
-                  (fromPeanoFn $k $ki))
-               (, ;; Apply current proof to axiom
-                  (exec (3 0)
-                        (, (sol $ski $shi (c: (-> $ap $b) $f))
-                           (axiom (c: $ap $an))
-                           (decFn $shi $hi)
-                           (lte $hi $ki))
-                        (, (sol $ki $hi (c: $b ($f $an)))))
-                  ;; Apply mpⁱ to current proof
-                  (exec (4 0)
-                        (, (sol $ski $hi (c: (-> $b $c) $f))
-                           (lte $hi $ki)
-                           (incFn $hi $shi))
-                        (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
-                  ;; Respawn inner self
-                  (exec (5 0) (,)
-                        (, (exec (2 $k) $ptrn $tplt)))))))
+         (+ (exec (2 $mps_n)
+                  (, ;; Capture inner self
+                     (exec (2 (S $k)) $ptrn $tplt)
+                     ;; Grab corresponding integers
+                     (fromPeanoFn (S $k) $ski)
+                     (fromPeanoFn $k $ki))
+                  (, ;; Apply current proof to axiom
+                     (exec (3 0)
+                           (, ;; Unify solution f and axiom an so that
+                              ;; (f an) is compatible
+                              (sol $ski $shi (1 $bb) (c: (-> $ap $b) $f))
+                              (axiom (c: $ap $an))
+                              ;; Make sure that (shi - 1) <= ski,
+                              ;; meaning that the number of hypotheses
+                              ;; after application is less than or
+                              ;; equal to the proof size budget (since
+                              ;; we know that this number of
+                              ;; hypotheses will need to go to zero
+                              ;; for the final solution)
+                              (decFn $shi $hi))
+                           (O (pure (sol $ki $hi $flags (c: $b ($f $an)))
+                                    $flags
+                                    (tuple
+                                     (ifnz (lte_i8 (sub_i8 (i8_from_string $hi) (i8_one))
+                                                   (i8_from_string $ki))
+                                           then 1 else 0)
+                                     (ifnz (lte_i8 (i8_from_string $hi)
+                                                   (sub_i8 (i8_from_string $ki) (i8_one)))
+                                           then 1 else 0)))))
+                     ;; Apply mpⁱ to current proof
+                     (exec (4 0)
+                           (, (sol $ski $hi ($aa 1) (c: (-> $b $c) $f))
+                              (incFn $hi $shi))
+                           (O (pure (sol $ki $shi $flags
+                                         (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
+                                    $flags
+                                    (tuple
+                                     (ifnz (lte_i8 (sub_i8 (i8_from_string $shi) (i8_one))
+                                                   (i8_from_string $ki))
+                                           then 1 else 0)
+                                     (ifnz (lte_i8 (i8_from_string $shi)
+                                                   (sub_i8 (i8_from_string $ki) (i8_one)))
+                                           then 1 else 0)))))
+                     ;; Respawn inner self
+                     (exec (5 0) (,)
+                           (, (exec (2 $k) $ptrn $tplt))))))))
 
 ;; Unify solution with target when maximum depth and hypotheses count
 ;; falls to Z.
 (exec (3 0 0)
       (, (target $mps (c: $ta $tx))
-         (sol 0 0 (c: $ta $tx)))
+         (sol 0 0 $flags (c: $ta $tx)))
       (, (final 0 0 (c: $ta $tx))))
