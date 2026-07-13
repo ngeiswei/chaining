@@ -82,13 +82,6 @@
       (, (toPeanoFn $x $k)
          (fromPeanoFn $k $x)))
 
-;; ;; Load lte.  Make sure that gen-lte.mm2 has been previously executed.
-;; (exec (1)
-;;       (I (ACT lte (lte $k $l))
-;;          (BTM (fromPeanoFn $k $x))
-;;          (BTM (fromPeanoFn $l $y)))
-;;       (, (lte $x $y)))
-
 ;; Precompute increment and decrement tables for integer.
 (exec (1)
       (, (fromPeanoFn $x $y)
