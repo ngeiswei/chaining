@@ -19,20 +19,18 @@
 ;;
 ;; The solution space is represented as follows
 ;;
-;; (sol MPS HYPCNT (AA BB) (c: THRM PRF))
+;; (sol MPS HYPCNT FLAG (c: THRM PRF))
 ;;
 ;; where
 ;; - MPS is the remaining proof size budget.
 ;;
 ;; - HYPCNT is the number of hypotheses of THRM.
 ;;
-;; - AA is a flag indicating whether PRF can be expanded by
-;;   applying it to an axiom.  AA is set to 1 if
-;;   (HYPCNT - 1) <= MPS, 0 otherwise.
-;;
-;; - BB is a flag indicating whether PRF can be expanded by
-;;   applying mpⁱ to it.  BB is set to 1 if
-;;   HYPCNT <= (MPS - 1), 0 otherwise.
+;; - FLAG is a flag indicating whether PRF can be expanded by applying
+;;   mpⁱ to it.  FLAG is set to 1 if HYPCNT <= (MPS - 1), 0 otherwise.
+;;   A flag indicating whether PRF can be expanded by applying it to
+;;   an axiom is not needed because this is always possible (NEXT:
+;;   proof it by induction).
 
 ;;;;;;;;;;;;
 ;; Theory ;;
@@ -41,6 +39,12 @@
 (axiom (c: (→ $𝜑 (→ $𝜓 $𝜑)) ax₁))
 (axiom (c: (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) ax₂))
 (axiom (c: (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) ax₃))
+
+;;;;;;;;;;;;;;;;;;;
+;; Flag Function ;;
+;;;;;;;;;;;;;;;;;;;
+
+;; NEXT: move $flag to its own function to avoid duplicating code.
 
 ;;;;;;;;;;
 ;; Main ;;
