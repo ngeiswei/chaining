@@ -97,13 +97,9 @@
       (, (target $mps (c: $ta $tx))
          (toPeanoFn $mps $mps_n))
       (O ;; Initialize source
-         (pure (sol $mps 1 $aabb (c: (-> $ta $ta) I))
-               $aabb
-               (tuple
-                (ifnz (lte_i8 (sub_i8 (i8_one) (i8_one)) (i8_from_string $mps))
-                      then 1 else 0)
-                (ifnz (lte_i8 (i8_one) (sub_i8 (i8_from_string $mps) (i8_one)))
-                      then 1 else 0)))
+         (pure (sol $mps 1 $bb (c: (-> $ta $ta) I))
+               $bb
+               (ifnz (lte_i8 (i8_one) (sub_i8 (i8_from_string $mps) (i8_one))) then 1 else 0))
          ;; Expand one step forward
          (+ (exec (2 $mps_n)
                   (, ;; Capture inner self
@@ -115,46 +111,31 @@
                      (exec (3 0)
                            (, ;; Unify solution f and axiom an so that
                               ;; (f an) is compatible
-                              (sol $ski $shi (1 $bb) (c: (-> $ap $b) $f))
+                              (sol $ski $shi $flag (c: (-> $ap $b) $f))
                               (axiom (c: $ap $an))
-                              ;; Make sure that (shi - 1) <= ski,
-                              ;; meaning that the number of hypotheses
-                              ;; after application is less than or
-                              ;; equal to the proof size budget (since
-                              ;; we know that this number of
-                              ;; hypotheses will need to go to zero
-                              ;; for the final solution)
                               (decFn $shi $hi))
-                           (O (pure (sol $ki $hi $flags (c: $b ($f $an)))
-                                    $flags
-                                    (tuple
-                                     (ifnz (lte_i8 (sub_i8 (i8_from_string $hi) (i8_one))
-                                                   (i8_from_string $ki))
-                                           then 1 else 0)
-                                     (ifnz (lte_i8 (i8_from_string $hi)
-                                                   (sub_i8 (i8_from_string $ki) (i8_one)))
-                                           then 1 else 0)))))
+                           (O (pure (sol $ki $hi $nuflag (c: $b ($f $an)))
+                                    $nuflag
+                                    (ifnz (lte_i8 (i8_from_string $hi)
+                                                  (sub_i8 (i8_from_string $ki) (i8_one)))
+                                          then 1 else 0))))
                      ;; Apply mpⁱ to current proof
                      (exec (4 0)
-                           (, (sol $ski $hi ($aa 1) (c: (-> $b $c) $f))
+                           (, (sol $ski $hi 1 (c: (-> $b $c) $f))
                               (incFn $hi $shi))
-                           (O (pure (sol $ki $shi $flags
+                           (O (pure (sol $ki $shi $nuflag
                                          (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
-                                    $flags
-                                    (tuple
-                                     (ifnz (lte_i8 (sub_i8 (i8_from_string $shi) (i8_one))
-                                                   (i8_from_string $ki))
-                                           then 1 else 0)
-                                     (ifnz (lte_i8 (i8_from_string $shi)
-                                                   (sub_i8 (i8_from_string $ki) (i8_one)))
-                                           then 1 else 0)))))
+                                    $nuflag
+                                    (ifnz (lte_i8 (i8_from_string $shi)
+                                                  (sub_i8 (i8_from_string $ki) (i8_one)))
+                                           then 1 else 0))))
                      ;; Respawn inner self
                      (exec (5 0) (,)
                            (, (exec (2 $k) $ptrn $tplt))))))))
 
 ;; Unify solution with target when maximum depth and hypotheses count
-;; falls to Z.
+;; falls to zero.
 (exec (3 0 0)
       (, (target $mps (c: $ta $tx))
-         (sol 0 0 $flags (c: $ta $tx)))
+         (sol 0 0 $flag (c: $ta $tx)))
       (, (final 0 0 (c: $ta $tx))))
