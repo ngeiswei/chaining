@@ -102,16 +102,16 @@
 ;; ;; id (size=5, time=0.006s)
 ;; (target 5 (c: (→ 𝜑 𝜑) $x))
 
-;; ;; pm2.43 (size=7, time=0.009s)
+;; ;; pm2.43 (size=7, time=0.011s)
 ;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
 
-;; jarr (size=13, time=8.605s)
+;; jarr (size=13, time=0.322s)
 (target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
 
-;; ;; imim1 (size=15, time=5m40.939s)
+;; ;; imim1 (size=15, time=1.962s)
 ;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
 
-;; ;; loowoz (size=19, time=?)
+;; ;; loowoz (size=19, time=1m20.978s)
 ;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
 
 ;; ;; pm2.83 (size=25, time=?)
