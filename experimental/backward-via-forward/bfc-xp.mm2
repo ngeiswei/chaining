@@ -153,9 +153,9 @@
                      (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
                   (, ;; Apply current proof to axiom
                      (exec (3 0)
-                           (, (sol $ski $shi $flag (c: (-> $ap $b) $f))
-                              (axiom (c: $ap $an))
-                              (decFn $shi $hi))
+                           (, (decFn $shi $hi)
+                              (sol $ski $shi $flag (c: (-> $ap $b) $f))
+                              (axiom (c: $ap $an)))
                            (O (pure (sol $ki $hi $flaga
                                          (c: $b ($f $an)))
                                     $flaga $bdya)))
