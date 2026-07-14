@@ -111,7 +111,7 @@
          (+ (exec (2 $mps_n)
                   (, ;; Capture inner self
                      (exec (2 (S $k)) $ptrn $tplt)
-                     ;; Grab corresponding integers
+                     ;; Grab integers of remaining budget
                      (fromPeanoFn (S $k) $ski)
                      (fromPeanoFn $k $ki)
                      ;; Grab is_mpⁱ_expandable bodies (for axiom and mpⁱ)
