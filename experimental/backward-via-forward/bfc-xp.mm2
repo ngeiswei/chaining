@@ -14,9 +14,13 @@
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 
-;;;;;;;;;;;;;;;
-;; Functions ;;
-;;;;;;;;;;;;;;;
+;;;;;;;;;;;;
+;; Theory ;;
+;;;;;;;;;;;;
+
+(axiom (c: (→ $𝜑 (→ $𝜓 $𝜑)) ax₁))
+(axiom (c: (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) ax₂))
+(axiom (c: (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) ax₃))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -82,24 +86,13 @@
                   ;; Grab corresponding integers
                   (toNumberFn (S $k) $ski)
                   (toNumberFn $k $ki))
-               (, ;; Apply current proof to axiom-1
+               (, ;; Apply current proof to axiom
                   (exec (3 0)
                         (, (gte $ki $hi)
                            (incFn $hi $shi)
-                           (sol $ski $shi (c: (-> (→ $𝜑 (→ $𝜓 $𝜑)) $b) $f)))
-                        (, (sol $ki $hi (c: $b ($f ax₁)))))
-                  ;; Apply current proof to axiom-2
-                  (exec (4 0)
-                        (, (gte $ki $hi)
-                           (incFn $hi $shi)
-                           (sol $ski $shi (c: (-> (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) $b) $f)))
-                        (, (sol $ki $hi (c: $b ($f ax₂)))))
-                  ;; Apply current proof to axiom-3
-                  (exec (5 0)
-                        (, (gte $ki $hi)
-                           (incFn $hi $shi)
-                           (sol $ski $shi (c: (-> (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) $b) $f)))
-                        (, (sol $ki $hi (c: $b ($f ax₃)))))
+                           (sol $ski $shi (c: (-> $ap $b) $f))
+                           (axiom (c: $ap $an)))
+                        (, (sol $ki $hi (c: $b ($f $an)))))
                   ;; Apply mpⁱ to current proof
                   (exec (6 0)
                         (, (gte $ki $hi)
