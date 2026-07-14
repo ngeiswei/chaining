@@ -83,6 +83,9 @@
 ;; Pure Definitions ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
+;; NEXT: store i8 in sol to avoid converting from string to i8.  Then
+;; rewrite sol at the end to display string instead of i8.
+
 ;; Output 1 if the corresponding proof is mpⁱ expandable, meaning its
 ;; hypotheses count is less than or equal to the remaining size
 ;; budget minus 1.  Output 0 otherwise.
