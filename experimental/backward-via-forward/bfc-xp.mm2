@@ -50,6 +50,9 @@
 ;;    mystery to me.  Especially the fact that placing decFn first
 ;;    yields the best performance since none of the variables in
 ;;    `(decFn $shi $hi)` are known at the time of pattern matching.
+;;    Even weirder is the fact that the size of decFn does not seem to
+;;    matter (as long as it is large enough to work properly, i.e. up
+;;    to 13 for jarr, etc).
 ;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
