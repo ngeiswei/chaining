@@ -19,8 +19,42 @@
 ;;    producing the axiom and mpⁱ exec commands, as opposed to while
 ;;    executing them.
 ;;
+;; 5. Regarding pattern ordering.  Pattern ordering of mpⁱ application
+;;    has no impact on performance.  Pattern ordering of axiom
+;;    application has major impact.  The least efficient ordering is
+;;
+;;      (axiom (c: $ap $an))
+;;      (sol $ski $shi $flag (c: (-> $ap $b) $f))
+;;      (decFn $shi $hi)
+;;
+;;    which takes 30s on jarr.
+;;
+;;    Then
+;;
+;;      (sol $ski $shi $flag (c: (-> $ap $b) $f))
+;;      (axiom (c: $ap $an))
+;;      (decFn $shi $hi)
+;;
+;;    which takes 9s on jarr.
+;;
+;;    Finally, the most efficient ordering is
+;;
+;;      (decFn $shi $hi)
+;;      (sol $ski $shi $flag (c: (-> $ap $b) $f))
+;;      (axiom (c: $ap $an))
+;;
+;;    which takes 300ms on jarr.  Swapping sol and axiom, if decFn
+;;    appears first, has no impact on performance.
+;;
+;;    Why these orderings have such impacts on performances is a
+;;    mystery to me.  Especially the fact that placing decFn first
+;;    yields the best performance since none of the variables in
+;;    `(decFn $shi $hi)` are known at the time of pattern matching.
+;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
+;;
+;; Notes regarding representation:
 ;;
 ;; The solution space is represented as follows
 ;;
@@ -34,8 +68,8 @@
 ;; - FLAG is a flag indicating whether PRF can be expanded by applying
 ;;   mpⁱ to it.  FLAG is set to 1 if HYPCNT <= (MPS - 1), 0 otherwise.
 ;;   A flag indicating whether PRF can be expanded by applying it to
-;;   an axiom is not needed because this is always possible (NEXT:
-;;   proof it by induction).
+;;   an axiom is not needed because this is always possible (it should
+;;   be easy to prove by structural induction).
 
 ;;;;;;;;;;;;
 ;; Theory ;;
