@@ -30,19 +30,19 @@
 ;;
 ;; (target MAX_PROOF_SIZE QUERY)
 
-;; ;; id (size=5, time=0.019s)
+;; ;; id (size=5, time=0.016s)
 ;; (target 5 (c: (→ 𝜑 𝜑) $x))
 
-;; ;; pm2.43 (size=7, time=0.024s)
+;; ;; pm2.43 (size=7, time=0.018s)
 ;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
 
-;; jarr (size=13, time=40.435s)
-(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; ;; jarr (size=13, time=0.176s)
+;; (target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
 
-;; ;; imim1 (size=15, time=25m5.188s)
+;; ;; imim1 (size=15, time=1.083s)
 ;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
 
-;; ;; loowoz (size=19, time=?)
+;; ;; loowoz (size=19, time=48.104s)
 ;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
 
 ;; ;; pm2.83 (size=25, time=?)
