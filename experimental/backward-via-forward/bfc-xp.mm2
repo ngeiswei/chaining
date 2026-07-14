@@ -15,7 +15,9 @@
 ;;    maybe it is due to the small number of axioms.
 ;;
 ;; 4. Moving the body of the pure function as data (using =pure) slows
-;;    down the search by 30%.
+;;    down the search by 30%.  That is why it is performed while
+;;    producing the axiom and mpⁱ exec commands, as opposed to while
+;;    executing them.
 ;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
@@ -54,10 +56,6 @@
        (ifnz (lte_i8 (i8_from_string $hypcnt)
                      (sub_i8 (i8_from_string $budget) (i8_one)))
              then 1 else 0))
-
-;; NEXT: instead of doing the =pure substitution in real time,
-;; precompute it while instantiating exec commands.  And get back the
-;; 30% that way.
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -115,22 +113,25 @@
                      (exec (2 (S $k)) $ptrn $tplt)
                      ;; Grab corresponding integers
                      (fromPeanoFn (S $k) $ski)
-                     (fromPeanoFn $k $ki))
+                     (fromPeanoFn $k $ki)
+                     ;; Grab is_mpⁱ_expandable bodies (for axiom and mpⁱ)
+                     (=pure (is_mpⁱ_expandable $ki $hi) $bdya)
+                     (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
                   (, ;; Apply current proof to axiom
                      (exec (3 0)
-                           (, ;; Unify solution f and axiom an so that
-                              ;; (f an) is compatible
-                              (sol $ski $shi $flag (c: (-> $ap $b) $f))
+                           (, (sol $ski $shi $flag (c: (-> $ap $b) $f))
                               (axiom (c: $ap $an))
-                              (decFn $shi $hi)
-                              (=pure (is_mpⁱ_expandable $ki $hi) $bdya))
-                           (O (pure (sol $ki $hi $flaga (c: $b ($f $an))) $flaga $bdya)))
+                              (decFn $shi $hi))
+                           (O (pure (sol $ki $hi $flaga
+                                         (c: $b ($f $an)))
+                                    $flaga $bdya)))
                      ;; Apply mpⁱ to current proof
                      (exec (4 0)
                            (, (sol $ski $hi 1 (c: (-> $b $c) $f))
-                              (incFn $hi $shi)
-                              (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
-                           (O (pure (sol $ki $shi $flagm (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f))) $flagm $bdym)))
+                              (incFn $hi $shi))
+                           (O (pure (sol $ki $shi $flagm
+                                         (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
+                                    $flagm $bdym)))
                      ;; Respawn inner self
                      (exec (5 0) (,)
                            (, (exec (2 $k) $ptrn $tplt))))))))
