@@ -40,11 +40,17 @@
 (axiom (c: (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) ax₂))
 (axiom (c: (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) ax₃))
 
-;;;;;;;;;;;;;;;;;;;
-;; Flag Function ;;
-;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;
+;; Pure Definitions ;;
+;;;;;;;;;;;;;;;;;;;;;;
 
-;; NEXT: move $flag to its own function to avoid duplicating code.
+;; Output 1 if the corresponding proof is mpⁱ expandable, meaning its
+;; hypotheses count is less than or equal to the remaining size
+;; budget minus 1.  Output 0 otherwise.
+(=pure (is_mpⁱ_expandable $budget $hypcnt)
+       (ifnz (lte_i8 (i8_from_string $hypcnt)
+                     (sub_i8 (i8_from_string $budget) (i8_one)))
+             then 1 else 0))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -92,11 +98,10 @@
 ;; Turn target into initial source and forward chaining loop
 (exec (2)
       (, (target $mps (c: $ta $tx))
-         (toPeanoFn $mps $mps_n))
+         (toPeanoFn $mps $mps_n)
+         (=pure (is_mpⁱ_expandable $mps 1) $bdyi))
       (O ;; Initialize source
-         (pure (sol $mps 1 $bb (c: (-> $ta $ta) I))
-               $bb
-               (ifnz (lte_i8 (i8_one) (sub_i8 (i8_from_string $mps) (i8_one))) then 1 else 0))
+         (pure (sol $mps 1 $flagi (c: (-> $ta $ta) I)) $flagi $bdyi)
          ;; Expand one step forward
          (+ (exec (2 $mps_n)
                   (, ;; Capture inner self
@@ -110,22 +115,15 @@
                               ;; (f an) is compatible
                               (sol $ski $shi $flag (c: (-> $ap $b) $f))
                               (axiom (c: $ap $an))
-                              (decFn $shi $hi))
-                           (O (pure (sol $ki $hi $nuflag (c: $b ($f $an)))
-                                    $nuflag
-                                    (ifnz (lte_i8 (i8_from_string $hi)
-                                                  (sub_i8 (i8_from_string $ki) (i8_one)))
-                                          then 1 else 0))))
+                              (decFn $shi $hi)
+                              (=pure (is_mpⁱ_expandable $ki $hi) $bdya))
+                           (O (pure (sol $ki $hi $flaga (c: $b ($f $an))) $flaga $bdya)))
                      ;; Apply mpⁱ to current proof
                      (exec (4 0)
                            (, (sol $ski $hi 1 (c: (-> $b $c) $f))
-                              (incFn $hi $shi))
-                           (O (pure (sol $ki $shi $nuflag
-                                         (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
-                                    $nuflag
-                                    (ifnz (lte_i8 (i8_from_string $shi)
-                                                  (sub_i8 (i8_from_string $ki) (i8_one)))
-                                           then 1 else 0))))
+                              (incFn $hi $shi)
+                              (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
+                           (O (pure (sol $ki $shi $flagm (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f))) $flagm $bdym)))
                      ;; Respawn inner self
                      (exec (5 0) (,)
                            (, (exec (2 $k) $ptrn $tplt))))))))
@@ -135,4 +133,4 @@
 (exec (3 0 0)
       (, (target $mps (c: $ta $tx))
          (sol 0 0 $flag (c: $ta $tx)))
-      (, (final 0 0 (c: $ta $tx))))
+      (, (final 0 0 $flag (c: $ta $tx))))
