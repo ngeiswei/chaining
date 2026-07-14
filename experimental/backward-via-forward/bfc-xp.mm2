@@ -11,8 +11,11 @@
 ;; 2. Moving the hypotheses count at the end of sol showed no
 ;;    improvement.
 ;;
-;; 3. using c: instead of : in axiom does not change performance.  But
+;; 3. Using c: instead of : in axiom does not change performance.  But
 ;;    maybe it is due to the small number of axioms.
+;;
+;; 4. Moving the body of the pure function as data (using =pure) slows
+;;    down the search by 30%.
 ;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
@@ -51,6 +54,10 @@
        (ifnz (lte_i8 (i8_from_string $hypcnt)
                      (sub_i8 (i8_from_string $budget) (i8_one)))
              then 1 else 0))
+
+;; NEXT: instead of doing the =pure substitution in real time,
+;; precompute it while instantiating exec commands.  And get back the
+;; 30% that way.
 
 ;;;;;;;;;;
 ;; Main ;;
