@@ -944,6 +944,10 @@
 ;; Test optimized depth-first search backward chaining via forward chaining ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; To enable trace (which is convenient to compare with the MORK
+;; version), comment out (add-atom &ofc-sol ...)  in ofc.  Then
+;; display it with !(get-atoms &ofc-sol)
+
 ;; ;; Exhausively generate all proofs of certain sizes
 ;; !(obfc 1 (: $x $a))
 ;; !(obfc 3 (: $x $a))
@@ -969,10 +973,6 @@
 
 ;; ;; jarr (100ms)
 ;; !(obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
-;; ;; Enable the following to display a trace.  This is convenient to
-;; ;; compare with the MORK version.  For that you also need to enable
-;; ;; (add-atom &ofc-sol ...) in ofc.
-;; !(get-atoms &ofc-sol)
 
 ;; ;; pm2.27
 ;; !(obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
