@@ -212,6 +212,8 @@
       (O (- (binRelToRemove $r))
          (- ($r $x $y))))
 
+;; NEXT: find out why one sol_i8 remains
+
 ;; Remove i8 sol relation
 (exec (6 0 0)
       (, (sol_i8 $budget $hypcnt $flag $result))
