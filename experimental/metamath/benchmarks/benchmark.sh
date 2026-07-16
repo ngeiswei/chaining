@@ -213,28 +213,28 @@ for theorem_id in impid id 2a1 pm2.43 imim2 jarr; do
     depth=$(get_depth $theorem_id)
     theorem="$(get_theorem $theorem_id)"
     echo "------------ Theorem: $theorem_id, $theorem ------------"
-    # # MM2
-    # dst="${stdoutdir}/pc-bc-depth_${depth}-${theorem_id}-mm2.stdout"
-    # depth_peano="$(i2p $depth)"
-    # query="(! (bc $depth_peano . (: \$x $theorem)))"
-    # # Set query
-    # echo "$query" >> pc-bc.mm2
-    # # Run query
-    # /usr/bin/time --verbose "${hypdir}/MORK/target/release/mork" run pc-bc.mm2 &> $dst
-    # # Remove query
-    # head -n -1 pc-bc.mm2 > pc-bc-tmp.mm2
-    # mv pc-bc-tmp.mm2 pc-bc.mm2
-    # # Gather statistics
-    # solutions=$(count_mm2_solutions "\." $dst)
-    # user_time=$(get_user_time $dst)
-    # max_ram=$(get_max_ram $dst)
-    # echo "* MM2"
-    # echo "  - File: $dst"
-    # echo "  - Solution count: $solutions"
-    # echo "  - Time (in second): $user_time"
-    # echo "  - Maximum RAM (in kb): $max_ram"
-    # # Write to CSV file
-    # echo "backward,mork,${theorem_id},${depth},${solutions},${user_time},${max_ram}" >> ${csv_fn}
+    # MM2
+    dst="${stdoutdir}/pc-bc-depth_${depth}-${theorem_id}-mm2.stdout"
+    depth_peano="$(i2p $depth)"
+    query="(! (bc $depth_peano . (: \$x $theorem)))"
+    # Set query
+    echo "$query" >> pc-bc.mm2
+    # Run query
+    /usr/bin/time --verbose "${hypdir}/MORK/target/release/mork" run pc-bc.mm2 &> $dst
+    # Remove query
+    head -n -1 pc-bc.mm2 > pc-bc-tmp.mm2
+    mv pc-bc-tmp.mm2 pc-bc.mm2
+    # Gather statistics
+    solutions=$(count_mm2_solutions "\." $dst)
+    user_time=$(get_user_time $dst)
+    max_ram=$(get_max_ram $dst)
+    echo "* MM2"
+    echo "  - File: $dst"
+    echo "  - Solution count: $solutions"
+    echo "  - Time (in second): $user_time"
+    echo "  - Maximum RAM (in kb): $max_ram"
+    # Write to CSV file
+    echo "backward,mork,${theorem_id},${depth},${solutions},${user_time},${max_ram}" >> ${csv_fn}
 
     # MeTTa
     dst="${stdoutdir}/pc-bc-depth_${depth}-${theorem_id}-petta.stdout"
