@@ -105,6 +105,9 @@
 ;;
 ;; (target MAX_PROOF_SIZE QUERY)
 
+;; ;; impid (Implied Identity) (size=3, time=?)
+;; (target 3 (c: (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)) $x))
+
 ;; ;; id (size=5, time=0.006s)
 ;; (target 5 (c: (→ 𝜑 𝜑) $x))
 
