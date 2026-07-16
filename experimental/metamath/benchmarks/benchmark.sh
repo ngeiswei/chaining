@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Produce benchmarks.csv containing comparison between MM2 and PeTTa
+# on exhaustive forward and backward chaining, as well as a selection
+# of theorems from Metamath.  Outputs are also generated and placed in
+# files under the stdout subfolder.
+
 # set -x
 
 #############
@@ -69,6 +74,33 @@ get_theorem() {
             ;;
         jarr)
             echo "(→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
+
+# Get required proof depth of a given theorem id
+get_depth() {
+    case "$1" in
+        impid)
+            echo 1
+            ;;
+        id)
+            echo 2
+            ;;
+        2a1)
+            echo 3
+            ;;
+        pm2.43)
+            echo 2
+            ;;
+        imim2)
+            echo 3
+            ;;
+        jarr)
+            echo 4
             ;;
         *)
             echo ""
@@ -178,7 +210,7 @@ done
 #    of various solution densities
 echo "*************** Theorem Backward Chaining ***************"
 for theorem_id in impid id 2a1 pm2.43 imim2 jarr; do
-    depth=4
+    depth=$(get_depth $theorem_id)
     theorem="$(get_theorem $theorem_id)"
     echo "------------ Theorem: $theorem_id, $theorem ------------"
     # # MM2
