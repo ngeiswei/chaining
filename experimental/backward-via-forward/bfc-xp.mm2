@@ -1,5 +1,3 @@
-;; NEXT: wait for https://github.com/trueagi-io/MORK/issues/133 to be fixed
-
 ;; Port of ofc and obfc from bfc-xp.metta to MM2.
 ;;
 ;; Important: in order to run that code you must first run
@@ -88,9 +86,6 @@
 ;; Pure Definitions ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-;; NEXT: store i8 in sol to avoid converting from string to i8.  Then
-;; rewrite sol at the end to display string instead of i8.
-
 ;; Output 1 if the corresponding proof is mpⁱ expandable, meaning its
 ;; hypotheses count is less than or equal to the remaining size
 ;; budget minus 1.  Output 0 otherwise.
@@ -150,52 +145,51 @@
       (, (target $s $q))
       (O (pure (target_i8 $i $q) $i (i8_from_string $s))))
 
-;; NEXT: re-enable once top NEXT issue fixed
+;; Turn target into initial source and forward chaining loop
+(exec (2)
+      (, (target_i8 $mps (c: $ta $tx))
+         (toPeanoFn_i8 $mps $mps_n)
+         (=pure (is_mpⁱ_expandable $mps (i8_one)) $bdyi))
+      (O ;; Initialize source
+         (pure $isol $isol
+               (tuple sol_i8 $mps (i8_one) $bdyi (' (c: (-> $ta $ta) I))))
+         ;; Expand one step forward
+         (+ (exec (2 $mps_n)
+                  (, ;; Capture inner self
+                     (exec (2 (S $k)) $ptrn $tplt)
+                     ;; Grab integers of remaining budget
+                     (fromPeanoFn_i8 (S $k) $ski)
+                     (fromPeanoFn_i8 $k $ki)
+                     ;; Grab is_mpⁱ_expandable bodies (for axiom and mpⁱ)
+                     (=pure (is_mpⁱ_expandable $ki $hi) $bdya)
+                     (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
+                  (, ;; Apply current proof to axiom
+                     (exec (3 0)
+                           (, (decFn_i8 $shi $hi)
+                              (sol_i8 $ski $shi $flag (c: (-> $ap $b) $f))
+                              (axiom (c: $ap $an)))
+                           (O (pure $asol $asol
+                                    (tuple sol_i8 $ki $hi $bdya
+                                           ('(c: $b ($f $an)))))))
+                     ;; Apply mpⁱ to current proof
+                     (exec (4 0)
+                           (, (sol_i8 $ski $hi 1 (c: (-> $b $c) $f))
+                              (incFn_i8 $hi $shi))
+                           (O (pure $mpsol $mpsol
+                                    (tuple sol_i8 $ki $shi $bdym
+                                           (' (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))))
+                     ;; Respawn inner self
+                     (exec (5 0) (,)
+                           (, (exec (2 $k) $ptrn $tplt))))))))
 
-;; ;; Turn target into initial source and forward chaining loop
-;; (exec (2)
-;;       (, (target_i8 $mps (c: $ta $tx))
-;;          (toPeanoFn_i8 $mps $mps_n)
-;;          (=pure (is_mpⁱ_expandable $mps 1) $bdyi))
-;;       (O ;; Initialize source
-;;          ;; NEXT: have $mps and 1 being i8 (see top NEXT)
-;;          (pure (sol_i8 $mps 1 $flagi (c: (-> $ta $ta) I)) $flagi $bdyi)
-;;          ;; Expand one step forward
-;;          (+ (exec (2 $mps_n)
-;;                   (, ;; Capture inner self
-;;                      (exec (2 (S $k)) $ptrn $tplt)
-;;                      ;; Grab integers of remaining budget
-;;                      (fromPeanoFn_i8 (S $k) $ski)
-;;                      (fromPeanoFn_i8 $k $ki)
-;;                      ;; Grab is_mpⁱ_expandable bodies (for axiom and mpⁱ)
-;;                      (=pure (is_mpⁱ_expandable $ki $hi) $bdya)
-;;                      (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
-;;                   (, ;; Apply current proof to axiom
-;;                      (exec (3 0)
-;;                            (, (decFn_i8 $shi $hi)
-;;                               (sol_i8 $ski $shi $flag (c: (-> $ap $b) $f))
-;;                               (axiom (c: $ap $an)))
-;;                            (O (pure (sol_i8 $ki $hi $flaga
-;;                                             (c: $b ($f $an)))
-;;                                     $flaga $bdya)))
-;;                      ;; Apply mpⁱ to current proof
-;;                      (exec (4 0)
-;;                            (, (sol_i8 $ski $hi 1 (c: (-> $b $c) $f))
-;;                               (incFn_i8 $hi $shi))
-;;                            (O (pure (sol_i8 $ki $shi $flagm
-;;                                             (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
-;;                                     $flagm $bdym)))
-;;                      ;; Respawn inner self
-;;                      (exec (5 0) (,)
-;;                            (, (exec (2 $k) $ptrn $tplt))))))))
-
-;; NEXT: re-enable once top NEXT issue fixed
-
-;; ;; Convert sol from i8 integer to string integer
-;; (exec (3 0 0)
-;;       (, (sol_i8 $budget $hypcnt $flag $result))
-;;       (O ;; NEXT: re-enable once fixed (see top NEXT)
-;;        ))
+;; Convert sol from i8 integer to string integer
+(exec (3 0 0)
+      (, (sol_i8 $budget $hypcnt $flag $result))
+      (O (pure $csol $csol (tuple sol
+                                  (i8_to_string $budget)
+                                  (i8_to_string $hypcnt)
+                                  $flag
+                                  (' $result)))))
 
 ;; Unify solution with target when maximum budget and hypotheses count
 ;; falls to zero.
