@@ -55,23 +55,30 @@
 ;;    target_i8, sol_i8, etc, then doing the internal calculations
 ;;    solely with i8 gives no measurable speed up.  However having to
 ;;    converte from sol_i8 to sol, then removing all sol_i8 at the
-;;    end, incurs a significant slow-down (2.3x slower in loowoz).
+;;    end, incurs a significant slow-down (1.8x slower for loowoz).
 ;;    This is likely due to the enormous volume of sol_i8 instances.
+;;    Update: On a more difficult problem like pm2.83 is might
+;;    actually make a difference.  Using i8 internally takes
+;;    109m45.370s while using string takes 114m56.189s, corresponding
+;;    to a 5% speed-up (or a 1.05x factor speed-up).
 ;;
 ;; 6. Using shorter symbols such as s instead of sol, p instead 𝜑, etc
 ;;    brings a tiny speed up but no more than 1%.
 ;;
 ;; 7. Solving multiple problems at once by enabling multiple targets
-;;    can speed things up a bit.  Although it is not clear if this is
-;;    due to pre and post computation being amortized or if actual
-;;    compression accross problems is taking place.  Comparing the
-;;    time of all problems running at once from impid to pm2.27,
+;;    seems to speed things up a bit.  Although it is not clear if
+;;    this is due to pre and post computation being amortized or if
+;;    actual compression accross problems is taking place.  Comparing
+;;    the time of all problems running at once from impid to pm2.27,
 ;;    1.062s, to the sum of all times running the problems
 ;;    sequentially, 0.007+0.007+0.017+0.557+0.505=1.093s, we can
 ;;    measure a 3% speed-up (a speed-up factor of 1.03x).  Up to
 ;;    loowoz, we get a time of 2m23.301s for all at once, and in
 ;;    sequence we get a time of 1.093+3.268+2m22.918=2m27.279s,
-;;    corresponding to 3% speed-up as well.
+;;    corresponding to 3% speed-up as well.  Another experiment
+;;    running impid to imim1 with a fixed size of 15 for all problems.
+;;    Running them sequentially or running them at once shows no
+;;    difference.
 ;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
