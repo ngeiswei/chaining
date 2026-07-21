@@ -61,6 +61,9 @@
 ;;    end, incurs a significant slow-down (2.3x slower in loowoz).
 ;;    This is likely due to the enormous volume of sol_i8 instances.
 ;;
+;; 7. Using shorter symbols such as s instead of sol, p instead 𝜑, etc
+;;    brings a tiny speed up but no more than 1%.
+;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 ;;
