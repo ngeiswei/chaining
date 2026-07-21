@@ -168,16 +168,17 @@
                            (, (decFn_i8 $shi $hi)
                               (sol_i8 $ski $shi $flag (c: (-> $ap $b) $f))
                               (axiom (c: $ap $an)))
-                           (O (pure $asol $asol
-                                    (tuple sol_i8 $ki $hi $bdya
-                                           ('(c: $b ($f $an)))))))
+                           (O (pure (sol_i8 $ki $hi $ra (c: $b ($f $an)))
+                                    $ra
+                                    $bdya)))
                      ;; Apply mpⁱ to current proof
                      (exec (4 0)
                            (, (sol_i8 $ski $hi 1 (c: (-> $b $c) $f))
                               (incFn_i8 $hi $shi))
-                           (O (pure $mpsol $mpsol
-                                    (tuple sol_i8 $ki $shi $bdym
-                                           (' (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))))
+                           (O (pure (sol_i8 $ki $shi $rm
+                                            (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
+                                    $rm
+                                    $bdym)))
                      ;; Respawn inner self
                      (exec (5 0) (,)
                            (, (exec (2 $k) $ptrn $tplt))))))))
