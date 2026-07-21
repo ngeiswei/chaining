@@ -131,8 +131,8 @@
 ;; ;; pm2.43 (size=7, time=0.017s, time-up-to=0.019s)
 ;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
 
-;; ;; jarr (size=13, time=0.557s, time-up-to=0.562s)
-;; (target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; jarr (size=13, time=0.557s, time-up-to=0.562s)
+(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
 
 ;; ;; pm2.27 (size=13, time=505s, time-up-to=1.062s)
 ;; (target 13 (c: (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)) $x))
@@ -143,8 +143,8 @@
 ;; ;; loowoz (size=19, time=2m22.918s, time-up-to=2m23.301s)
 ;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
 
-;; pm2.83 (size=25, time=?)
-(target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
+;; ;; pm2.83 (size=25, time=109m45.370s)
+;; (target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
 
 ;; ;; loolin (size=26, time=?)
 ;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
