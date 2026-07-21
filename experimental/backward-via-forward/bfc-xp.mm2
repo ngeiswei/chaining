@@ -54,6 +54,13 @@
 ;;    matter (as long as it is large enough to work properly, i.e. up
 ;;    to 13 for jarr, etc).
 ;;
+;; 6. Converting at the start integers from string to i8, to produce
+;;    target_i8, sol_i8, etc, then doing the internal calculations
+;;    solely with i8 gives no measurable speed up.  However having to
+;;    converte from sol_i8 to sol, then removing all sol_i8 at the
+;;    end, incurs a significant slow-down (2.3x slower in loowoz).
+;;    This is likely due to the enormous volume of sol_i8 instances.
+;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 ;;
