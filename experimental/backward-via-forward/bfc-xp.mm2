@@ -100,23 +100,23 @@
 ;;
 ;; (target MAX_PROOF_SIZE QUERY)
 
-;; ;; impid (Implied Identity) (size=3, time=?)
+;; ;; impid (Implied Identity) (size=3, time=0.007)
 ;; (target 3 (c: (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)) $x))
 
-;; ;; id (size=5, time=0.006s)
+;; ;; id (size=5, time=0.007s)
 ;; (target 5 (c: (→ 𝜑 𝜑) $x))
 
-;; ;; pm2.43 (size=7, time=0.011s)
+;; ;; pm2.43 (size=7, time=0.017s)
 ;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
 
-;; jarr (size=13, time=0.322s)
-(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; ;; jarr (size=13, time=0.557s)
+;; (target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
 
-;; ;; imim1 (size=15, time=1.962s)
+;; ;; imim1 (size=15, time=3.268s)
 ;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
 
-;; ;; loowoz (size=19, time=1m20.978s)
-;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
+;; loowoz (size=19, time=2m22.918s)
+(target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
 
 ;; ;; pm2.83 (size=25, time=?)
 ;; (target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
