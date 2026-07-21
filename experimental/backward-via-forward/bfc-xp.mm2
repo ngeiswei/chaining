@@ -1,7 +1,7 @@
 ;; Port of ofc and obfc from bfc-xp.metta to MM2.
 ;;
 ;; Important: in order to run that code you must first run
-;; gen-peano.mm2 and gen-lte.mm2, in that order.
+;; gen-peano.mm2.
 ;;
 ;; Notes regarding optimization:
 ;;
@@ -11,15 +11,12 @@
 ;; 2. Moving the hypotheses count at the end of sol showed no
 ;;    improvement.
 ;;
-;; 3. Using c: instead of : in axiom does not change performance.  But
-;;    maybe it is due to the small number of axioms.
-;;
-;; 4. Moving the body of the pure function as data (using =pure) slows
+;; 3. Moving the body of the pure function as data (using =pure) slows
 ;;    down the search by 30%.  That is why it is performed while
 ;;    producing the axiom and mpⁱ exec commands, as opposed to while
 ;;    executing them.
 ;;
-;; 5. Regarding pattern ordering.  Pattern ordering of mpⁱ application
+;; 4. Regarding pattern ordering.  Pattern ordering of mpⁱ application
 ;;    has no impact on performance.  Pattern ordering of axiom
 ;;    application has major impact.  The least efficient ordering is
 ;;
@@ -54,17 +51,17 @@
 ;;    matter (as long as it is large enough to work properly, i.e. up
 ;;    to 13 for jarr, etc).
 ;;
-;; 6. Converting at the start integers from string to i8, to produce
+;; 5. Converting at the start integers from string to i8, to produce
 ;;    target_i8, sol_i8, etc, then doing the internal calculations
 ;;    solely with i8 gives no measurable speed up.  However having to
 ;;    converte from sol_i8 to sol, then removing all sol_i8 at the
 ;;    end, incurs a significant slow-down (2.3x slower in loowoz).
 ;;    This is likely due to the enormous volume of sol_i8 instances.
 ;;
-;; 7. Using shorter symbols such as s instead of sol, p instead 𝜑, etc
+;; 6. Using shorter symbols such as s instead of sol, p instead 𝜑, etc
 ;;    brings a tiny speed up but no more than 1%.
 ;;
-;; 8. Solving multiple problems at once by enabling multiple targets
+;; 7. Solving multiple problems at once by enabling multiple targets
 ;;    can speed things up a bit.  Although it is not clear if this is
 ;;    due to pre and post computation being amortized or if actual
 ;;    compression accross problems is taking place.  Comparing the
@@ -112,7 +109,10 @@
 ;; hypotheses count is less than or equal to the remaining size
 ;; budget minus 1.  Output 0 otherwise.
 (=pure (is_mpⁱ_expandable $budget $hypcnt)
-       (ifnz (lte_i8 $hypcnt (sub_i8 $budget (i8_one))) then 1 else 0))
+       (ifnz (lte_i8 (i8_from_string $hypcnt)
+                     (sub_i8 (i8_from_string $budget) (i8_one)))
+             then 1
+             else 0))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -150,72 +150,55 @@
 ;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
 
 ;; Load Peano to Integer conversion.  Make sure that gen-peano.mm2 has
-;; been previously executed.  Warning: the tables will contain actual
-;; i8 integers, not strings.
+;; been previously executed.
 (exec (0)
       (I (ACT peano (toPeanoFn $x $k)))
-      (O (pure (toPeanoFn_i8 $i $k) $i (i8_from_string $x))
-         (pure (fromPeanoFn_i8 $k $i) $i (i8_from_string $x))))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
 
-;; Precompute increment and decrement tables for integer.  Warning:
-;; the tables contain i8 not strings.
+;; Precompute increment and decrement tables for integer.
 (exec (1)
-      (, (fromPeanoFn_i8 $x $y)
-         (fromPeanoFn_i8 (S $x) $sy))
-      (, (incFn_i8 $y $sy)
-         (decFn_i8 $sy $y)))
-
-;; Convert target from string integer to i8 integer
-(exec (1)
-      (, (target $s $q))
-      (O (pure (target_i8 $i $q) $i (i8_from_string $s))))
+      (, (fromPeanoFn $x $y)
+         (fromPeanoFn (S $x) $sy))
+      (, (incFn $y $sy)
+         (decFn $sy $y)))
 
 ;; Turn target into initial source and forward chaining loop
 (exec (2)
-      (, (target_i8 $mps (c: $ta $tx))
-         (toPeanoFn_i8 $mps $mps_n)
-         (=pure (is_mpⁱ_expandable $mps (i8_one)) $bdyi))
+      (, (target $mps (c: $ta $tx))
+         (toPeanoFn $mps $mps_n)
+         (=pure (is_mpⁱ_expandable $mps 1) $bdyi))
       (O ;; Initialize source
-         (pure $isol $isol
-               (tuple sol_i8 $mps (i8_one) $bdyi (' (c: (-> $ta $ta) I))))
+         (pure $isol $isol (tuple sol $mps 1 $bdyi (' (c: (-> $ta $ta) I))))
          ;; Expand one step forward
          (+ (exec (2 $mps_n)
                   (, ;; Capture inner self
                      (exec (2 (S $k)) $ptrn $tplt)
                      ;; Grab integers of remaining budget
-                     (fromPeanoFn_i8 (S $k) $ski)
-                     (fromPeanoFn_i8 $k $ki)
+                     (fromPeanoFn (S $k) $ski)
+                     (fromPeanoFn $k $ki)
                      ;; Grab is_mpⁱ_expandable bodies (for axiom and mpⁱ)
                      (=pure (is_mpⁱ_expandable $ki $hi) $bdya)
                      (=pure (is_mpⁱ_expandable $ki $shi) $bdym))
                   (, ;; Apply current proof to axiom
                      (exec (3 0)
-                           (, (decFn_i8 $shi $hi)
-                              (sol_i8 $ski $shi $flag (c: (-> $ap $b) $f))
+                           (, (decFn $shi $hi)
+                              (sol $ski $shi $flag (c: (-> $ap $b) $f))
                               (axiom (c: $ap $an)))
-                           (O (pure (sol_i8 $ki $hi $ra (c: $b ($f $an)))
+                           (O (pure (sol $ki $hi $ra (c: $b ($f $an)))
                                     $ra
                                     $bdya)))
                      ;; Apply mpⁱ to current proof
                      (exec (4 0)
-                           (, (sol_i8 $ski $hi 1 (c: (-> $b $c) $f))
-                              (incFn_i8 $hi $shi))
-                           (O (pure (sol_i8 $ki $shi $rm
-                                            (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
+                           (, (sol $ski $hi 1 (c: (-> $b $c) $f))
+                              (incFn $hi $shi))
+                           (O (pure (sol $ki $shi $rm
+                                         (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))
                                     $rm
                                     $bdym)))
                      ;; Respawn inner self
                      (exec (5 0) (,)
                            (, (exec (2 $k) $ptrn $tplt))))))))
-
-;; Convert sol from i8 integer to string integer
-(exec (3 0 0)
-      (, (sol_i8 $budget $hypcnt $flag $result))
-      (O (pure $csol $csol (tuple sol
-                                  (i8_to_string $budget)
-                                  (i8_to_string $hypcnt)
-                                  $flag
-                                  (' $result)))))
 
 ;; Unify solution with target when maximum budget and hypotheses count
 ;; falls to zero.
@@ -224,21 +207,15 @@
          (sol 0 0 $flag (c: $ta $tx)))
       (, (final 0 0 $flag (c: $ta $tx))))
 
-;; Remove i8 binary relations
+;; Remove binary relations
 (exec (5 0 0)
       (,)
-      (, (binRelToRemove target_i8)
-         (binRelToRemove toPeanoFn_i8)
-         (binRelToRemove fromPeanoFn_i8)
-         (binRelToRemove incFn_i8)
-         (binRelToRemove decFn_i8)))
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove incFn)
+         (binRelToRemove decFn)))
 (exec (5 0 1)
       (, (binRelToRemove $r)
          ($r $x $y))
       (O (- (binRelToRemove $r))
          (- ($r $x $y))))
-
-;; Remove i8 sol relation
-(exec (6 0 0)
-      (, (sol_i8 $budget $hypcnt $flag $result))
-      (O (- (sol_i8 $budget $hypcnt $flag $result))))
