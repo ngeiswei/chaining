@@ -64,6 +64,18 @@
 ;; 7. Using shorter symbols such as s instead of sol, p instead 𝜑, etc
 ;;    brings a tiny speed up but no more than 1%.
 ;;
+;; 8. Solving multiple problems at once by enabling multiple targets
+;;    can speed things up a bit.  Although it is not clear if this is
+;;    due to pre and post computation being amortized or if actual
+;;    compression accross problems is taking place.  Comparing the
+;;    time of all problems running at once from impid to pm2.27,
+;;    1.062s, to the sum of all times running the problems
+;;    sequentially, 0.007+0.007+0.017+0.557+0.505=1.093s, we can
+;;    measure a 3% speed-up (a speed-up factor of 1.03x).  Up to
+;;    loowoz, we get a time of 2m23.301s for all at once, and in
+;;    sequence we get a time of 1.093+3.268+2m22.918=2m27.279s,
+;;    corresponding to 3% speed-up as well.
+;;
 ;; Times are obtained by running on an Intel(R) Xeon(R) E3-1535M v6
 ;; (8) @ 4.20 GHz
 ;;
