@@ -131,8 +131,9 @@ especially for rewriting systems like MORK, which we will study next.
 
 For comparing regular MeTTa backward chaining with MORK forward
 chaining emulation, see [obfc-xp.mm2](obfc-xp.mm2).  Do not forget to
-run [gen-peano.mm2](gen-peano.mm2) to generate tables used by
-[obfc-xp.mm2](obfc-xp.mm2).
+run [gen-peano.mm2](gen-peano.mm2) and [gen-lte.mm2](gen-lte.mm2) in
+that order, to generate tables used by [obfc-xp.mm2](obfc-xp.mm2) and
+[obc-xp.mm2](obc-xp.mm2).
 
 So far the results are disappointing.  On jarr, the backward chaining
 emulation via forward chaining on MM2 is 290x slower than direct
