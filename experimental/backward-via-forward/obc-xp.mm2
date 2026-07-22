@@ -1,0 +1,164 @@
+;; Vanilla backward chainer for MORK, explicitly using backward
+;; recursion as opposed to forward chaining.  It is a direct port of
+;; obc from [bfc-xp.metta](bfc-xp.metta) and essentially following the
+;; idea of [pc-bc.mm2](../metamath/benchmark).
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Knowledge Bases ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+;; Rule base up to index 8 included
+;; (rb (: id (-> $𝜑 $𝜑)))
+(rb (: mp (-> (→ $𝜑 $𝜓) $𝜑 $𝜓)))
+
+;; Axiom base up to index 8 included
+(ab (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(ab (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(ab (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Backward Chainer ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+;; Define obc, for optimized backward chainer, in terms of exec
+;; commands.  It represents intermediary solutions as follows
+;;
+;; (sol PATH PROOF_SIZE (: PROOF THEOREM))
+;;
+;; where
+;;
+;; - PATH: path of the lemma from the root of the target proof.  A
+;;   path indicates a branch of the proof tree, a sequence of number
+;;   indicating the index of premise starting with `.` as root.  So
+;;   for instance
+;;
+;;   (sol . 7 (: (mp (mp ax₂ ax₂) (mp ax₂ ax₁)) (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;;
+;;   indicates a full proof of the target theorem.  While
+;;
+;;   (sol (. 0) 3 (: (mp ax₂ ax₂) (→ (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜑)) (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)))))
+;;
+;;   indicates a proof of the first premise of the inference rule `mp`
+;;   at the root of the proof tree.
+;;
+;;   Likewise
+;;
+;;   (sol ((. 0) 1) 1 (: ax₂ (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ (→ 𝜑 𝜑) (→ 𝜑 𝜓)))))
+;;
+;;   indicates a proof of the lemma of the second premise of the first
+;;   premise of the root, `(mp ax₂ ax₂)`.
+;;
+;; - PROOF_SIZE: is the size of PROOF
+;;
+;; - PROOF: is the proof
+;;
+;; - THEOREM: is the theorem
+
+;; Base case (nullary)
+(= (obc (S $k) $path (: $x $a))
+   (exec (0 (S $k) obc_nullary)
+         (, (ab (: $x $a)))
+         (, (sol $path 1 (: $x $a)))))
+
+;; Recursive step (binary).  The budget needs to be at least 3, one
+;; for the rule, two for the two premises.
+(= (obc (S (S (S $k))) $path (: ($f $x1 $x2) $b))
+   (exec (1 $path obc_binary_init)
+         (, (rb (: $f (-> $a1 $a2 $b))))
+         (, ;; Recurse on first premise
+            (! (obc (S $k) ($path 0) (: $x1 $a1)))
+            (exec (5 * main)
+                  (, (! $fx) (= $fx $bdy))
+                  (O (- (! $fx)) (+ $bdy)))
+            (exec (9 ($path 0) obc_binary_2nd_arg)
+                  (, ;; Get solutions of recursion on first premise
+                     (sol ($path 0) $s1 (: $x1 $a1))
+                     ;; Get binary rules
+                     (rb (: $f (-> $a1 $a2 $b)))
+                     ;; Calculate remaining budget for second premise
+                     NEXT)
+                  (, ;; Recurse on second premise
+                     (! (obc $k ($path 1) (: $x2 $a2)))
+                     (exec (5 * main)
+                           (, (! $fx) (= $fx $bdy))
+                           (O (- (! $fx)) (+ $bdy)))
+                     (exec (9 ($path 1) obc_binary_final)
+                           (, (sol ($path 0) $s1 (: $x1 $a1))
+                              (sol ($path 1) $s2 (: $x2 $a2))
+                              (rb (: $f (-> $a1 $a2 $b))))
+                           (O (pure (sol $path $s (: ($f $x1 $x2) $b))
+                                    $s (i8_to_string (sum_i8 (i8_from_string $s1)
+                                                             (i8_from_string $s2)))))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Function call evaluator ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Evaluate any function call prefixed by a bang
+(exec (5 * main)
+      (, (! $fx) (= $fx $bdy))
+      (O (- (! $fx)) (+ $bdy)))
+
+;;;;;;;;;;
+;; Main ;;
+;;;;;;;;;;
+
+;; Load Peano to Integer conversion.  Make sure that gen-peano.mm2 has
+;; been previously executed.
+(exec (0)
+      (I (ACT peano (toPeanoFn $x $k)))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
+
+;; Turn target into obc call
+(exec (1)
+      (, (target $budget (: $x $a))
+         (toPeanoFn $budget $bp))
+      (, (! (obc $bp . (: $x $a)))))
+
+;; We use depth instead of proof size as budget for now
+
+;; ;; impid (Implied Identity) (size=3, time=?)
+;; (target 1 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+
+;; ;; id (size=5, time=?, time-up-to=?)
+;; (target 2 (: $x (→ 𝜑 𝜑)))
+
+;; pm2.43 (size=7, time=?, time-up-to=?)
+(target 2 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+
+;; ;; jarr (size=13, time=?, time-up-to=?)
+;; (target 4 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+
+;; ;; pm2.27 (size=13, time=?, time-up-to=?)
+;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+
+;; ;; imim1 (size=15, time=?, time-up-to=?)
+;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+
+;; ;; loowoz (size=19, time=?, time-up-to=?)
+;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+
+;; ;; pm2.83 (size=25, time=?, time-up-to=?)
+;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+
+;; ;; loolin (size=26, time=?, time-up-to=?)
+;; (target 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+
+;; Unify solution with target when maximum budget and hypotheses count
+;; falls to zero.
+(exec (4 0 0 0)
+      (, (target $budget (: $tx $ta))
+         (sol . $prfsize (: $tx $ta)))
+      (, (final . $prfsize (: $tx $ta))))
+
+;; Remove extraneous binary relations
+(exec (5 0 0 0)
+      (,)
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)))
+(exec (5 0 0 1)
+      (, (binRelToRemove $r)
+         ($r $x $y))
+      (O (- (binRelToRemove $r))
+         (- ($r $x $y))))
