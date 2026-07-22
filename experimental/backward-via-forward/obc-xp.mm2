@@ -54,47 +54,60 @@
 ;;
 ;; - THEOREM: is the theorem
 
-;; Base case (nullary)
-(= (obc (S $k) $path (: $x $a))
-   (exec (0 (S $k) obc_nullary)
-         (, (ab (: $x $a)))
+;; Base case (nullary).  The budget needs to be at least 1 for the
+;; axiom.
+(= (obc $budget $path (: $x $a))
+   (exec (0 $path obc_nullary)
+         (, (lte 1 $budget)
+            (ab (: $x $a)))
          (, (sol $path 1 (: $x $a)))))
 
-;; Recursive step (binary).  The budget needs to be at least 3, one
-;; for the rule, two for the two premises.
-(= (obc (S (S (S $k))) $path (: ($f $x1 $x2) $b))
+;; Recursive step (binary).  The budget needs to be at least 3, 1 for
+;; the rule, 2 for the two premises.
+(= (obc $budget $path (: ($f $x1 $x2) $b))
    (exec (1 $path obc_binary_init)
-         (, (rb (: $f (-> $a1 $a2 $b))))
-         (, ;; Recurse on first premise
-            (! (obc (S $k) ($path 0) (: $x1 $a1)))
-            (exec (5 * main)
-                  (, (! $fx) (= $fx $bdy))
-                  (O (- (! $fx)) (+ $bdy)))
-            (exec (9 ($path 0) obc_binary_2nd_arg)
-                  (, ;; Get solutions of recursion on first premise
-                     (sol ($path 0) $s1 (: $x1 $a1))
-                     ;; Get binary rules
-                     (rb (: $f (-> $a1 $a2 $b)))
-                     ;; Calculate remaining budget for second premise
-                     NEXT)
-                  (, ;; Recurse on second premise
-                     (! (obc $k ($path 1) (: $x2 $a2)))
-                     (exec (5 * main)
-                           (, (! $fx) (= $fx $bdy))
-                           (O (- (! $fx)) (+ $bdy)))
-                     (exec (9 ($path 1) obc_binary_final)
-                           (, (sol ($path 0) $s1 (: $x1 $a1))
-                              (sol ($path 1) $s2 (: $x2 $a2))
-                              (rb (: $f (-> $a1 $a2 $b))))
-                           (O (pure (sol $path $s (: ($f $x1 $x2) $b))
-                                    $s (i8_to_string (sum_i8 (i8_from_string $s1)
-                                                             (i8_from_string $s2)))))))))))
+         (, (lte 3 $budget)
+            (rb (: $f (-> $a1 $a2 $b))))
+         (O ;; Recurse on first premise
+            (pure (! (obc $b1 ($path 0) (: $x1 $a1)))
+                  $b1
+                  ;; Calculate new budget, $budget - 2, for premise 1
+                  ;; NEXT: maybe check if new budget is greater than 1
+                  (i8_to_string (sub_i8 (i8_from_string $budget) (i8_from_string 2))))
+            (+ (exec (5 * main)
+                     (, (! $fx) (= $fx $bdy))
+                     (O (- (! $fx)) (+ $bdy))))
+            (+ (exec (9 ($path 0) obc_binary_2nd_arg)
+                     (, ;; Get solutions of recursion on first premise
+                        (sol ($path 0) $s1 (: $x1 $a1))
+                        ;; Get binary rules
+                        (rb (: $f (-> $a1 $a2 $b))))
+                     (O ;; Recurse on second premise
+                        (pure (! (obc $b2 ($path 1) (: $x2 $a2)))
+                              $b2
+                              ;; Calculate new budget, $budget - $s1 - 1, for premises 2
+                              ;; NEXT: maybe check if new budget is greater than 1
+                              (i8_to_string (sub_i8 (sub_i8 (i8_from_string $budget)
+                                                            (i8_from_string $s1))
+                                                    (i8_one))))
+                        (+ (exec (5 * main)
+                                 (, (! $fx) (= $fx $bdy))
+                                 (O (- (! $fx)) (+ $bdy))))
+                        (+ (exec (9 ($path 1) obc_binary_final)
+                                 (, (sol ($path 0) $s1 (: $x1 $a1))
+                                    (sol ($path 1) $s2 (: $x2 $a2))
+                                    (rb (: $f (-> $a1 $a2 $b))))
+                                 ;; NEXT: make sure that it does not go over the total budget
+                                 (O (pure (sol $path $s (: ($f $x1 $x2) $b))
+                                          $s (i8_to_string (sum_i8 (i8_one)
+                                                                   (i8_from_string $s1)
+                                                                   (i8_from_string $s2)))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function call evaluator ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Evaluate any function call prefixed by a bang
+;; Evaluate all function calls prefixed by a bang
 (exec (5 * main)
       (, (! $fx) (= $fx $bdy))
       (O (- (! $fx)) (+ $bdy)))
@@ -110,25 +123,31 @@
       (, (toPeanoFn $x $k)
          (fromPeanoFn $k $x)))
 
-;; Turn target into obc call
+;; Load lte
 (exec (1)
-      (, (target $budget (: $x $a))
-         (toPeanoFn $budget $bp))
-      (, (! (obc $bp . (: $x $a)))))
+      (I (ACT lte (lte $x $y))
+         (BTM (fromPeanoFn $x $xi))
+         (BTM (fromPeanoFn $y $yi)))
+      (, (lte $xi $yi)))
+
+;; Turn target into obc call
+(exec (2)
+      (, (target $budget (: $x $a)))
+      (, (! (obc $budget . (: $x $a)))))
 
 ;; We use depth instead of proof size as budget for now
 
 ;; ;; impid (Implied Identity) (size=3, time=?)
-;; (target 1 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
 ;; ;; id (size=5, time=?, time-up-to=?)
-;; (target 2 (: $x (→ 𝜑 𝜑)))
+;; (target 5 (: $x (→ 𝜑 𝜑)))
 
 ;; pm2.43 (size=7, time=?, time-up-to=?)
-(target 2 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+(target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; jarr (size=13, time=?, time-up-to=?)
-;; (target 4 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; (target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
 ;; ;; pm2.27 (size=13, time=?, time-up-to=?)
 ;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
@@ -156,7 +175,8 @@
 (exec (5 0 0 0)
       (,)
       (, (binRelToRemove toPeanoFn)
-         (binRelToRemove fromPeanoFn)))
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove lte)))
 (exec (5 0 0 1)
       (, (binRelToRemove $r)
          ($r $x $y))
