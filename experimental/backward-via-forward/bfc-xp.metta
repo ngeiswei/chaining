@@ -1,44 +1,6 @@
-;; Backward via forward chaining.  It works by forwadly generating
-;; hypothetical truths (and their associated proof abstractions)
-;; instead of absolute truths (and their associated proofs), then,
-;; still going forward, by applying these hypothetical truths to the
-;; axioms to reach absolute truths.  The idea being that only
-;; hypothetical truth proving given theorems are produced and nothing
-;; else.
-;;
-;; Hypothetical truths are produced using dedicated combinators.
-;;
-;; By combining the bluebird and blackbird
-;; [combinators](https://hackage.haskell.org/package/data-aviary-0.4.0/docs/src/Data-Aviary-Birds.html)
-;; one can apply modus ponens backward while doing forward chaining.
-;;
-;; The blackbird operator can be used to create a specialized rule to
-;; expand modus ponens backward on the first argument of any abstract
-;; proof:
-;;
-;; mpⁱ = (λ z ((.: z) mp))
-;;
-;; with type signature
-;;
-;; (-> (-> $b $c) (-> (→ $a $b) (-> $a $c)))
-;;
-;; or in Haskell
-;;
-;; (b -> c) -> ((→ a b) -> a -> c)
-;;
-;; meaning this rule can turn any abstract proof of type (b -> c) into
-;; am abstract proof of type (→ a b) -> a -> c.  In other words b is
-;; replaced by (→ a b) -> a, i.e. a monus ponens expansion on the
-;; first argument.
-;;
-;; Then the bluebird can be used to move this specialized rule to
-;; expand modus ponens backward to any argument of any abstract proof:
-;;
-;; (. mpⁱ) to expand the second argument, (. (. mpⁱ)) to expand the
-;; third argument, etc.
-;;
-;; For more naming conventions of combinators, see
-;; https://wiki.xxiivv.com/site/logic.html
+;; Number of experiments leading to [obc.metta](obc.metta) and
+;; [obfc.metta](obfc.metta).  Was useful to infer specialized versions
+;; of the blackbird combinator specialized for modus ponens.
 
 ;; Disable co-unification
 !(translatePredicate (set_prolog_flag occurs_check True))
@@ -481,28 +443,6 @@
           ((MkSized $xs (: $x $a)) (sbc (minus (S (S $k)) $fs) (: $x $a))))
      (MkSized (S (plus $fs $xs)) (: (mp $f $x) $b))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Optimized backward chainer with maximum proof size ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Same as above but uses Number instead of Nat
-(= (obc-gtz $s (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
-   (MkSized 1 (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑)))))
-(= (obc-gtz $s (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
-   (MkSized 1 (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))))))
-(= (obc-gtz $s (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
-   (MkSized 1 (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)))))
-(= (obc-gtz $s (: (mp $f $x) $b))
-   (if (< 2 $s)
-       (let* (((MkSized $fs (: $f (→ $a $b))) (obc (- $s 2) (: $f (→ $a $b))))
-              ((MkSized $xs (: $x $a)) (obc (- (- $s 1) $fs) (: $x $a))))
-         (MkSized (+ (+ $fs $xs) 1) (: (mp $f $x) $b)))
-       (empty)))
-(= (obc $s (: $x $a))
-   (if (< 0 $s)
-       (obc-gtz $s (: $x $a))
-       (empty)))
-
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Forward Chainer ;;
 ;;;;;;;;;;;;;;;;;;;;;
@@ -545,60 +485,6 @@
 (= (bfc $rb $depth (: $x $a))
    ;; (trace! (👁 bfc $rb $depth (: $x $a))
            (fc $rb $depth (: $x $a) (: I (-> $a $a))));)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Optimized Forward Chainer ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-!(bind! &ofc-sol (new-space))
-
-;; Like above but specialized for inversed propositional calculus, and
-;; avoid placing mpⁱ as arguments.
-;; (: ofc (-> Number                    ; Maximum depth
-;;            Number                    ; Hypotheses count
-;;            $b                        ; Target query
-;;            $b                        ; Source query
-;;            $b))
-(= (ofc $depth $hypcnt $tgt (: $x $a))
-   (if (< 0 $hypcnt)
-       ;; Recursive steps
-       (if (and (< 0 $depth) (<= $hypcnt $depth))
-           (progn
-            ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
-            (ofc-rec (- $depth 1) (- $hypcnt 1) $tgt (: $x $a)))
-           (empty))
-       ;; Base case
-       ;; (: $x $a)))
-        (let (: $x $a) $tgt
-             (progn
-              ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
-              (: $x $a)))))
-
-;; Recursive steps (note that depth and hypcnt have already been
-;; decremented) Specialized application given abstraction
-(= (ofc-rec $depth_dec $hypcnt_dec $tgt
-            (: $f (-> (→ $𝜑 (→ $𝜓 $𝜑)) $b)))
-   (ofc $depth_dec $hypcnt_dec $tgt (: ($f ax₁) $b)))
-(= (ofc-rec $depth_dec $hypcnt_dec $tgt
-            (: $f (-> (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) $b)))
-   (ofc $depth_dec $hypcnt_dec $tgt (: ($f ax₂) $b)))
-(= (ofc-rec $depth_dec $hypcnt_dec $tgt
-            (: $f (-> (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) $b)))
-   (ofc $depth_dec $hypcnt_dec $tgt (: ($f ax₃) $b)))
-;; Specialized application given argument of mpⁱ
-(= (ofc-rec $depth_dec $hypcnt_dec $tgt (: $f (-> $b $c)))
-   (ofc $depth_dec (+ $hypcnt_dec 2) $tgt (: (mpⁱ $f) (-> (→ $a $b) (-> $a $c)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Optimized backward chainer via forward chaining ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Backward via forward chaining
-;; (: (obfc (-> Number                     ; Maximum depth
-;;              $b                         ; Query
-;;              $b)))
-(= (obfc $depth (: $x $a))
-   (ofc $depth 1 (: $x $a) (: I (-> $a $a))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;;;;;;;;;;; ;;
@@ -940,66 +826,6 @@
 ;; ;; pm2.86
 ;; !(bfc &dfs-kb (fromNumber 26) (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Test optimized depth-first search backward chaining via forward chaining ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; To enable trace (which is convenient to compare with the MORK
-;; version), comment out (add-atom &ofc-sol ...)  in ofc.  Then
-;; display it with !(get-atoms &ofc-sol)
-
-;; ;; Exhausively generate all proofs of certain sizes
-;; !(obfc 1 (: $x $a))
-;; !(obfc 3 (: $x $a))
-;; !(obfc 5 (: $x $a))
-;; !(obfc 7 (: $x $a))
-;; !(obfc 9 (: $x $a))
-;; !(obfc 11 (: $x $a)) ; 5523, 0.457s
-;; !(obfc 13 (: $x $a)) ; 35064, 2.905s
-;; !(obfc 15 (: $x $a)) ; 233681, 19.622s
-;; !(obfc 17 (: $x $a)) ; 1591750, 196.30s
-
-;; ;; id
-;; !(obfc 5 (: $x (→ 𝜑 𝜑)))
-
-;; ;; pm2.43
-;; !(obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
-
-;; ;; 2a1
-;; !(obfc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
-
-;; ;; imim2 (82ms)
-;; !(obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
-
-;; ;; jarr (100ms)
-;; !(obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
-
-;; ;; pm2.27
-;; !(obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
-
-;; ;; imim1 (200ms)
-;; !(obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-
-;; ;; loowoz (5.761s)
-;; !(obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
-
-;; ;; pm2.83 (37m40.783s)
-;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
-
-;; ;; loolin (32m17.697s)
-;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
-
-;; NEXT: determine depths
-
-;; ;; imim12 (?)
-;; !(obfc 25 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
-
-;; ;; peirceroll
-;; !(obfc 26 (: $x (→ (→ (→ (→ 𝜑 𝜓) 𝜑) 𝜑) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ (→ 𝜒 𝜑) 𝜑)))))
-
-;; ;; pm2.86
-;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Test proof-sized bound backward chainer ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1048,59 +874,3 @@
 
 ;; ;; pm2.83
 ;; !(sbc (fromNumber 25) (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Test proof-sized bound optimized backward chainer ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Exhausively generate all proofs of certain sizes
-;; !(obc 1 (: $x $a))
-;; !(obc 3 (: $x $a))
-;; !(obc 5 (: $x $a))
-;; !(obc 7 (: $x $a))
-;; !(obc 9 (: $x $a))
-;; !(obc 11 (: $x $a)) ; 5523, 0.391s
-;; !(obc 13 (: $x $a)) ; 35064, 2.458s
-;; !(obc 15 (: $x $a)) ; 233681, 18.471s
-;; !(obc 17 (: $x $a)) ; 1591750, 142.83s
-
-;; ;; id
-;; !(obc 5 (: $x (→ 𝜑 𝜑)))
-
-;; ;; pm2.43
-;; !(obc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
-
-;; ;; 2a1
-;; !(obc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
-
-;; ;; imim2 (81ms)
-;; !(obc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
-
-;; jarr (90ms)
-!(obc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
-
-;; ;; pm2.27
-;; !(obc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
-
-;; ;; imim1 (140ms)
-;; !(obc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-
-;; ;; loowoz (~3.309s)
-;; !(obc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
-
-;; ;; pm2.83 (19m29.217s)
-;; !(obc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
-
-;; ;; loolin (16m16.625s)
-;; !(obc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
-
-;; NEXT: determine depths
-
-;; ;; imim12 (?) (was 25 and supposedly worked)
-;; !(obc 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
-
-;; ;; peirceroll
-;; !(obc 32 (: $x (→ (→ (→ (→ 𝜑 𝜓) 𝜑) 𝜑) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ (→ 𝜒 𝜑) 𝜑)))))
-
-;; ;; pm2.86
-;; !(obc 32 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
