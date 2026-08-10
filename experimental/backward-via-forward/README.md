@@ -91,10 +91,11 @@ nothing else.  Once this has been establish we will move to a MORK
 implementation, but for now we remain inside MeTTa using PeTTa as
 back-end.
 
-The code can be found in [bfc-xp.metta](bfc-xp.metta).  The main two
-chainer implementations being compared are `obfc` which stands for
-Optimized Backward via Forward Chainer, and `obc` which stands for
-Optimized Backward Chainer.  Benchmarks of two types are conducted:
+The code can be found in [obfc-xp.metta](obfc-xp.metta) and
+[obc-xp.metta](obc-xp.metta).  The main two chainer implementations
+being compared are `obfc` which stands for Optimized Backward via
+Forward Chainer, and `obc` which stands for Optimized Backward
+Chainer.  Benchmarks of two types are conducted:
 
 1. Over four exhaustive enumerations (all theorems and their proofs up
    to a certain size) of proof sizes, 11, 13, 15 and 17 respectively.
