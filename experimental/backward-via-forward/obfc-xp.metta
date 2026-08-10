@@ -62,8 +62,18 @@
 
 !(bind! &ofc-sol (new-space))
 
-;; Like above but specialized for inversed propositional calculus, and
-;; avoid placing mpⁱ as arguments.
+;; Optimized forward chainer meant to emulate backward chaining.  It
+;; is optimized in the senses that
+;;
+;; 1. It uses proof size instead of depth (although in this proof
+;; representation they are one and the same).
+;;
+;; 2. It prunes the search by ignoring exploring branches that may not
+;; lead to non hypotheses in the final result.
+;;
+;; 3. It uses Number instead of Nat.
+;;
+;; 4. It is specialized for propositional calculus.
 ;; (: ofc (-> Number                    ; Maximum depth
 ;;            Number                    ; Hypotheses count
 ;;            $b                        ; Target query
