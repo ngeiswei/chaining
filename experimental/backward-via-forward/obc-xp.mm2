@@ -2,6 +2,16 @@
 ;; recursion as opposed to forward chaining.  It is a direct port of
 ;; obc from [bfc-xp.metta](bfc-xp.metta) and essentially following the
 ;; idea of [pc-bc.mm2](../metamath/benchmark).
+;;
+;; WARNING: don't forget to run [gen-peano.mm2](gen-peano.mm2) and
+;; [gen-lte.mm2](gen-lte.mm2) prior to running that code.
+
+;; NEXT: there was a weirdness going on producing more candidates than
+;; necessarily, but I have forgotten exactly.  This was detectable
+;; before jarr I recall though.  Maybe we could compare with
+;; obc-xp.metta side by side or something.  Oddly, I also remember
+;; that I needed to have https://github.com/trueagi-io/MORK/issues/136
+;; fixed, but I forgot exactly why.
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Knowledge Bases ;;
@@ -48,11 +58,11 @@
 ;;   indicates a proof of the lemma of the second premise of the first
 ;;   premise of the root, `(mp ax₂ ax₂)`.
 ;;
-;; - PROOF_SIZE: is the size of PROOF
+;; - PROOF_SIZE: size of PROOF
 ;;
-;; - PROOF: is the proof
+;; - PROOF: proof
 ;;
-;; - THEOREM: is the theorem
+;; - THEOREM: theorem
 
 ;; Base case (nullary).  The budget needs to be at least 1 for the
 ;; axiom.
