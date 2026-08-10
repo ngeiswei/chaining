@@ -27,7 +27,9 @@
 ;; Optimized backward chainer with maximum proof size ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Same as above but uses Number instead of Nat
+;; Optimized backward chainer, in the sense that it uses maximum proof
+;; size instead of depth, is specialized for propositional calculus
+;; and uses Number instead of Nat.
 (= (obc-gtz $s (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
    (MkSized 1 (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑)))))
 (= (obc-gtz $s (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
