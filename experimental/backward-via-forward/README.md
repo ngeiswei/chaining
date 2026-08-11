@@ -146,71 +146,17 @@ functions but I doubt it will make a substantial difference.
 
 #### Faster variant: `obfc-xp-fast.mm2`
 
-A structural rewrite of `obfc-xp.mm2` is available as
-[obfc-xp-fast.mm2](obfc-xp-fast.mm2).  It runs roughly **2.3× to I2.5×
-faster** than `obfc-xp.mm2` and produces identical results (obtained
-by running [bench.sh](bench.sh)):
-
-```
-                          obfc-xp.mm2     obfc-xp-fast.mm2    speedup
-jarr  (size 13)           ~0.34 s         ~0.14 s             2.4×
-imim1 (size 15)           ~2.10 s         ~0.90 s             2.3×
-loowoz (size 19, est.)    ~89 s           ~40 s               2.2×
-```
-
-(`bfc()` benchmark in MORK's `kernel/src/main.rs` runs jarr in
-~0.1s, confirming that the simplified representation leaves little
-headroom.)
+A structural rewrite of [obfc-xp.mm2](obfc-xp.mm2) is available as
+[obfc-xp-fast.mm2](obfc-xp-fast.mm2).  It runs roughly **2× faster**
+than [obfc-xp.mm2](obfc-xp.mm2).
 
 The key changes from `obfc-xp.mm2` to `obfc-xp-fast.mm2` are:
 
-1. **No `pure` sink in axiom/mpⁱ application.**  In `obfc-xp.mm2`
-   each axiom application invokes the `pure` sink to compute the
-   new `FLAG` (a precomputed `is_mpⁱ_expandable`).  That sink
-   allocates a `PathMap<()>` and a 4 GiB buffer per call and walks
-   the path tree on `finalize`, dominating the per-sol cost.
-   `obfc-xp-fast.mm2` drops the `FLAG` field entirely.
+1. **No `pure` sink in axiom/mpⁱ application.**.
 
-2. **Hypothesis count derived from the budget.**  Instead of
-   carrying `HYPCNT` in the sol tuple and gating `mpⁱ` via `FLAG`,
-   the hypcnt is recovered at every iteration via cheap
-   `(gte $ki $hi)` / `(inc $hi $shi)` table lookups.  This replaces
-   the entire `=pure` flag precomputation mechanism.
+2. **Single-conjunct axiom application exec.**.
 
-3. **Single-conjunct axiom application exec.**  The axiom
-   application pattern is reduced from three conjuncts
-   `(decFn ...)` / `(sol ...)` / `(axiom ...)` to just `(sol ...)`,
-   since the axiom constraint is bound in the inner exec's LHS via
-   `(axiom $r $constraint)`.
-
-4. **Plain integers for the budget countdown.**  Peano
+3. **Plain integers for the budget countdown.**  Peano
    `(S (S ... Z))` structures and `toPeanoFn`/`fromPeanoFn`
    conversions are replaced by a direct integer representation and
    a precomputed `(dec N N-1)` / `(inc N N+1)` table.
-
-5. **Self-contained.**  `gen-peano.mm2` and `gen-lte.mm2` are no
-   longer needed — the dec/inc/lte/gte tables are inlined directly
-   in the file (covering integers 0..26, sufficient for all
-   propositional calculus theorems up to size 26).
-
-The same structural insight is implemented as the `bfc()` benchmark
-in MORK's `kernel/src/main.rs`, which is what motivated this
-rewrite.
-
-In addition to the structural changes above, `obfc-xp-fast.mm2`
-follows `obfc-xp.mm2`'s notational conventions:
-
-- The theorem/proof wrapper is `(c: THM PRF)` (converse-of-`:`),
-  matching `obfc-xp.mm2`.  (`bfc()` uses `(C THM PRF)`.)
-- The two arrow symbols are used distinctly:
-  - `→` (Unicode) is the implication logical connector, used for
-    axiom theorems and the target query.
-  - `->` (ASCII) is the arrow type, used in sol theorem patterns
-    (`(c: (-> $ap $b) $f)`) where it plays the same role as in
-    `obfc-xp.mm2`.
-  This distinction matches the convention documented in
-  `obfc-xp.mm2`'s source: `→` is the implication logical connector,
-  `->` is the arrow type used to relate premises to conclusion in a
-  rewriting rule.
-- `mpⁱ` (vs `M` in `bfc()`) is used for the mp-application
-  constructor.
