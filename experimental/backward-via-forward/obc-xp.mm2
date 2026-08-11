@@ -6,6 +6,9 @@
 ;; WARNING: don't forget to run [gen-peano.mm2](gen-peano.mm2) and
 ;; [gen-lte.mm2](gen-lte.mm2) prior to running that code.
 
+;; NEXT: decompose n-ary rules into product target ,.  This way it
+;; will easier to address the NEXT issue right below.
+
 ;; NEXT: fix the last NEXT, making sure that the remaining budget of
 ;; premise 1 and premise 2 does not go over the total budget
 
