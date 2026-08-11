@@ -80,14 +80,14 @@
 ;; ;; pm2.43 (size=7, time=0.010s, time-up-to=0.015s)
 ;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
 
-;; ;; jarr (size=13, time=0.143s, time-up-to=0.155s)
-;; (target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; jarr (size=13, time=0.143s, time-up-to=0.155s)
+(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
 
 ;; ;; pm2.27 (size=13, time=0.137s, time-up-to=0.275s)
 ;; (target 13 (c: (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)) $x))
 
-;; imim1 (size=15, time=0.924s, time-up-to=1.533s)
-(target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
+;; ;; imim1 (size=15, time=0.924s, time-up-to=1.533s)
+;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
 
 ;; ;; loowoz (size=19, time=39.562s, time-up-to=44.324s)
 ;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
@@ -112,7 +112,7 @@
                   (axiom (c: $r $ap)))
                (, (exec (3 0)
                         (, (sol $ski $shi (c: (-> $ap $b) $f)))
-                        (, (sol $ki $hi (c: $b ($r $f)))))
+                        (, (sol $ki $hi (c: $b ($f $r)))))
                   (exec (4 0)
                         (, (sol $ski $hi (c: (-> $b $c) $f)))
                         (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
