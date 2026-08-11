@@ -195,7 +195,22 @@ The key changes from `obfc-xp.mm2` to `obfc-xp-fast.mm2` are:
 
 The same structural insight is implemented as the `bfc()` benchmark
 in MORK's `kernel/src/main.rs`, which is what motivated this
-rewrite.  The only differences between `obfc-xp-fast.mm2` and
-`bfc()` are notational: `→` for implication (vs `>` in `bfc`),
-`mpⁱ` for mp-application (vs `M`), and theorem/proof wrapper `(C
-...)` (same as `bfc`).
+rewrite.
+
+In addition to the structural changes above, `obfc-xp-fast.mm2`
+follows `obfc-xp.mm2`'s notational conventions:
+
+- The theorem/proof wrapper is `(c: THM PRF)` (converse-of-`:`),
+  matching `obfc-xp.mm2`.  (`bfc()` uses `(C THM PRF)`.)
+- The two arrow symbols are used distinctly:
+  - `→` (Unicode) is the implication logical connector, used for
+    axiom theorems and the target query.
+  - `->` (ASCII) is the arrow type, used in sol theorem patterns
+    (`(c: (-> $ap $b) $f)`) where it plays the same role as in
+    `obfc-xp.mm2`.
+  This distinction matches the convention documented in
+  `obfc-xp.mm2`'s source: `→` is the implication logical connector,
+  `->` is the arrow type used to relate premises to conclusion in a
+  rewriting rule.
+- `mpⁱ` (vs `M` in `bfc()`) is used for the mp-application
+  constructor.
