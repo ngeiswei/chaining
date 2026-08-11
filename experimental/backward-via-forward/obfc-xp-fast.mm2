@@ -63,9 +63,9 @@
       (, (gte $yi $xi)))
 
 ;; Theorem/proof axioms (all `→`)
-(axiom ax₁ (→ $𝜑 (→ $𝜓 $𝜑)))
-(axiom ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))))
-(axiom ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)))
+(axiom (c: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (c: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (c: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
 
 ;; Define target query, of the form
 ;;
@@ -100,26 +100,25 @@
 
 ;; Outer init
 (exec (2)
- (, (target $mps (c: $ta $tx)))
- (, (sol $mps 1 (c: (-> $ta $ta) I))
-    (exec (2 $mps)
-         (, (exec (2 $ski) $ptrn $tplt)
-            (decFn $ski $ki)
-            (gte $ki $hi)
-            (incFn $hi $shi)
-            (axiom $r $ap))             ; Note that this is 15% faster
-                                        ; than having (axiom $r $ap)
-                                        ; next to sol to form a join
-                                        ; match.  I am not sure why.
-         (, (exec (3 $r)
-                  (, (sol $ski $shi (c: (-> $ap $b) $f)))
-                  (, (sol $ki $hi (c: $b ($r $f)))))
-            (exec (4 0)
-                  (, (sol $ski $hi (c: (-> $b $c) $f)))
-                  (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
-            (exec (7 0)
-                  (,)
-                  (, (exec (2 $ki) $ptrn $tplt)))))))
+      (, (target $mps (c: $ta $tx)))
+      (, (sol $mps 1 (c: (-> $ta $ta) I))
+         (exec (2 $mps)
+               (, (exec (2 $ski) $ptrn $tplt)
+                  (decFn $ski $ki)
+                  (gte $ki $hi)
+                  (incFn $hi $shi)
+                  ; Note that having axiom here is 15% faster than
+                  ; having it next to sol to form a join match.  Why?
+                  (axiom (c: $r $ap)))
+               (, (exec (3 0)
+                        (, (sol $ski $shi (c: (-> $ap $b) $f)))
+                        (, (sol $ki $hi (c: $b ($r $f)))))
+                  (exec (4 0)
+                        (, (sol $ski $hi (c: (-> $b $c) $f)))
+                        (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
+                  (exec (7 0)
+                        (,)
+                        (, (exec (2 $ki) $ptrn $tplt)))))))
 
 ;; Termination
 (exec (3 0 0)
