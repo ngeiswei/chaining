@@ -893,27 +893,30 @@
 ;; ;; loolin (size=26, time=?, time-up-to=?)
 ;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
 
-;; NEXT: Lemmax got confused with the arrow -> vs →.  Correct that and
-;; see the results still hold.  Also, try to figure out why (axiom $r
-;; $constraint) needs to be sequenced before sol, as opposed to being
-;; a join match.
+;; NEXT: Lemmax got confused with the arrow -> vs →.  Corrected by
+;; using `->` for sol theorem patterns and `→` for axiom theorem
+;; patterns, mirroring obfc-xp.mm2's convention.  Verify results still
+;; hold (see benchmark timings above).
+;;
+;; NEXT: Investigate why (axiom $r $constraint) needs to be sequenced
+;; before sol, as opposed to being a join match.
 
 ;; Outer init
 (exec (2)
  (, (target $mps (c: $ta $tx)))
- (, (sol $mps 1 (c: (→ $ta $ta) I))
+ (, (sol $mps 1 (c: (-> $ta $ta) I))
     (exec (2 $mps)
          (, (exec (2 $ski) $ptrn $tplt)
             (dec $ski $ki)
             (gte $ki $hi)
             (inc $hi $shi)
-            (axiom $r $constraint))
+            (axiom $r $ap))
          (, (exec (3 $r)
-                  (, (sol $ski $shi (c: (→ $constraint $b) $f)))
+                  (, (sol $ski $shi (c: (-> $ap $b) $f)))
                   (, (sol $ki $hi (c: $b ($r $f)))))
             (exec (4 0)
-                  (, (sol $ski $hi (c: (→ $b $c) $f)))
-                  (, (sol $ki $shi (c: (→ (→ $a $b) (→ $a $c)) (mpⁱ $f)))))
+                  (, (sol $ski $hi (c: (-> $b $c) $f)))
+                  (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
             (exec (7 0)
                   (, (lte 0 0))
                   (, (exec (2 $ki) $ptrn $tplt)))))))
