@@ -893,14 +893,6 @@
 ;; ;; loolin (size=26, time=?, time-up-to=?)
 ;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
 
-;; NEXT: Lemmax got confused with the arrow -> vs →.  Corrected by
-;; using `->` for sol theorem patterns and `→` for axiom theorem
-;; patterns, mirroring obfc-xp.mm2's convention.  Verify results still
-;; hold (see benchmark timings above).
-;;
-;; NEXT: Investigate why (axiom $r $constraint) needs to be sequenced
-;; before sol, as opposed to being a join match.
-
 ;; Outer init
 (exec (2)
  (, (target $mps (c: $ta $tx)))
@@ -910,7 +902,10 @@
             (dec $ski $ki)
             (gte $ki $hi)
             (inc $hi $shi)
-            (axiom $r $ap))
+            (axiom $r $ap))             ; Note that this is 15% faster
+                                        ; than having (axiom $r $ap)
+                                        ; next to sol to form a join
+                                        ; match.  I am not sure why.
          (, (exec (3 $r)
                   (, (sol $ski $shi (c: (-> $ap $b) $f)))
                   (, (sol $ki $hi (c: $b ($r $f)))))
