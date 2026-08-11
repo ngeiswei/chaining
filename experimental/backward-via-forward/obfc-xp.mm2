@@ -104,6 +104,9 @@
 ;; Theory ;;
 ;;;;;;;;;;;;
 
+;; Note: the unicode arrow → is the implication logical connector, to
+;; not be confused with -> which is the arrow type used to relate
+;; premises to conclusion in a rewriting rule like modus ponens.
 (axiom (c: (→ $𝜑 (→ $𝜓 $𝜑)) ax₁))
 (axiom (c: (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))) ax₂))
 (axiom (c: (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)) ax₃))
