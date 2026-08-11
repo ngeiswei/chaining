@@ -6,12 +6,8 @@
 ;; WARNING: don't forget to run [gen-peano.mm2](gen-peano.mm2) and
 ;; [gen-lte.mm2](gen-lte.mm2) prior to running that code.
 
-;; NEXT: there was a weirdness going on producing more candidates than
-;; necessarily, but I have forgotten exactly.  This was detectable
-;; before jarr I recall though.  Maybe we could compare with
-;; obc-xp.metta side by side or something.  Oddly, I also remember
-;; that I needed to have https://github.com/trueagi-io/MORK/issues/136
-;; fixed, but I forgot exactly why.
+;; NEXT: fix the last NEXT, making sure that the remaining budget of
+;; premise 1 and premise 2 does not go over the total budget
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Knowledge Bases ;;
@@ -84,13 +80,15 @@
                   ;; Calculate new budget, $budget - 2, for premise 1
                   ;; NEXT: maybe check if new budget is greater than 1
                   (i8_to_string (sub_i8 (i8_from_string $budget) (i8_from_string 2))))
+            ;; Evaluate all function calls prefixed by a bang
             (+ (exec (5 * main)
                      (, (! $fx) (= $fx $bdy))
                      (O (- (! $fx)) (+ $bdy))))
+            ;; Resume recursion
             (+ (exec (9 ($path 0) obc_binary_2nd_arg)
                      (, ;; Get solutions of recursion on first premise
                         (sol ($path 0) $s1 (: $x1 $a1))
-                        ;; Get binary rules
+                        ;; Get binary rules (NEXT: do I really need that since it was obtained above?)
                         (rb (: $f (-> $a1 $a2 $b))))
                      (O ;; Recurse on second premise
                         (pure (! (obc $b2 ($path 1) (: $x2 $a2)))
@@ -107,7 +105,13 @@
                                  (, (sol ($path 0) $s1 (: $x1 $a1))
                                     (sol ($path 1) $s2 (: $x2 $a2))
                                     (rb (: $f (-> $a1 $a2 $b))))
-                                 ;; NEXT: make sure that it does not go over the total budget
+                                 ;; NEXT: make sure that it does not
+                                 ;; go over the total budget for this
+                                 ;; iteration, which should be $budget
+                                 ;; The condition to respect should be
+                                 ;; $s <= $budget.  If that condition
+                                 ;; is not met then sol should not be
+                                 ;; produced.
                                  (O (pure (sol $path $s (: ($f $x1 $x2) $b))
                                           $s (i8_to_string (sum_i8 (i8_one)
                                                                    (i8_from_string $s1)
