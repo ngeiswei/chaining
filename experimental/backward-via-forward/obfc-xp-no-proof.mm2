@@ -1,0 +1,249 @@
+;; obfc-xp-no-proof.mm2 - backward-via-forward chaining in MM2, no proof.
+;;
+;; Initially provided by Zar Goertzel.  The idea was to ignore proofs
+;; on a first pass then only construct the proofs alongside the way to
+;; the final results.  This provides a significant speed up.  Here the
+;; final step has been removed to simplify the whole thing and make it
+;; more easily comparable with a MeTTa equivalent implementation.
+;;
+;; Prerequisites: run gen-peano.mm2 and gen-lte.mm2 first (their ACTs land in
+;; /dev/shm/).  Invoke as: mork run obfc-xp-no-proof.mm2 out.mm2
+;;
+;; Built on Nil Geisweiller's obfc-xp-fast.mm2 (branch opt-bfc-mm2), which
+;; contributes the whole loop architecture: plain integers for the budget
+;; countdown instead of Peano, hypothesis count derived from gte/incFn tables
+;; instead of a stored flag and =pure sinks, and - the decisive one - every
+;; join hoisted into the exec-generating outer exec so each inner exec is a
+;; single-conjunct, prefix-restricted probe rather than a join.
+;;
+;; What this file adds: the proof term is removed from the stored fact.
+;;
+;;     Nil:  (sol MPS HYPCNT (c: THM PRF))
+;;     here: (sol MPS HYPCNT THM)
+;;
+;; MM2's Space.btm is a PathMap<()>, i.e. a set, so identical facts collapse
+;; for free.  With the proof inside the fact, two derivations of the SAME
+;; theorem at the same (budget, hypcount) are two distinct facts, and each is
+;; expanded again at every subsequent level - so the redundancy compounds with
+;; depth.  Removing the proof lets the set semantics do the deduplication:
+;;
+;;     stored facts, sizes 13 / 15 / 19:
+;;       with proof in key:  9,131  /  59,804  /  2,872,040
+;;       without:            3,095  /  13,142  /    235,753
+;;                           2.95x  /   4.55x  /      12.2x
+;;
+;; Proofs are recovered afterwards, and no derivation edges are stored, because
+;; both rules are invertible: for the axiom rule the parent is
+;; (-> <axiom type> CHILD), determined by the child plus which axiom fired; for
+;; mp-inverse the child (-> (-> a b) (-> a c)) determines the parent (-> b c).
+;; So `sol` is its own reachability oracle.  Phase 2 walks it backward from the
+;; target to mark the ancestor cone, then forward to build the proof inside that
+;; cone.  On imim1 the cone is 16 nodes out of 13,625 stored facts.
+;;
+;; Both extraction loops are specialized exactly as the main loop is - the outer
+;; exec grounds the level and hypothesis indices, so every sol/pf lookup is a
+;; prefix-restricted probe.  Written the other way (indices as join variables)
+;; extraction cost 621 ms to touch 16 facts instead of 60 ms.
+;;
+;; Note the two loops run in opposite directions: the backward walk propagates
+;; UP in budget (target at 0 toward the source at MPS), the forward proof build
+;; propagates DOWN.  Reversing either yields no proof, silently.
+;;
+;; Two further optimizations apply to this file mechanically, and are what the
+;; small_*.mm2 programs beside it are.  Run: python3 xform.py <this> small_X.mm2
+;;
+;;   Short symbols.  A MORK symbol costs 1 + len bytes, len counted in UTF-8
+;;   bytes (expr/src/lib.rs:117), so `->' costs 4 where a 1-character ASCII
+;;   symbol costs 2 - and `->' occurs 23.5 times per stored fact.  The rename
+;;   leaves the transition count bit-identical: a pure byte win, which shows up
+;;   on time as well as memory because bytes are what get moved.
+;;
+;;   Marker conclusion.  Every stored fact is (-> hyp (-> hyp ... TARGET)) with
+;;   the same target innermost, and no rule ever inspects it: the axiom rule
+;;   matches (-> AP B) and returns B, mp-inverse matches (-> B C).  Replacing it
+;;   with a 2-byte marker is transparent to the search, and cuts transitions
+;;   1.49x as well, because shorter keys mean shallower trie descent.
+;;
+;; Together, at size 19: 4,515 -> 2,635 ms, 92.1 -> 47.1 MB, 315 -> 154 bytes per
+;; fact, with the fact count and all three proof terms unchanged.  At size 25:
+;; 397,992 -> 252,344 ms and 7.29 -> 3.26 GB, with the stored-fact count
+;; identical to the digit (16,911,482).  That is what puts loolin (26) in reach:
+;; ~34 M facts at 221 bytes is ~7 GB resident, where 431 bytes projected ~15 GB.
+;;
+;; Measured MM2 execution time, all proofs enumerated, proof counts agreeing with
+;; the reference at every size (2 / 1 / 3 / 2):
+;;
+;;   size          obfc-xp.mm2   obfc-xp-fast   this file   + both of the above
+;;   13 jarr            151 ms         69 ms       62 ms
+;;   15 imim1           974 ms        397 ms      208 ms
+;;   19 loowoz       43,369 ms     18,462 ms    4,510 ms          2,635 ms
+;;   25 pm2.83              -             -    397,992 ms       252,344 ms
+;;
+;; Against SWI-PeTTa, both sides enumerating all proofs, measured on a quiet
+;; machine (an earlier set of PeTTa figures for this project was taken under
+;; load and ran ~2x slow; those are superseded):
+;;
+;;   size          this + both    SWI-PeTTa      time      memory
+;;   19 loowoz         2.6 s          1.9 s    1.39x behind    47 MB vs 21 MB
+;;   25 pm2.83       252.3 s        688.6 s    2.73x AHEAD   3.26 GB vs 21 MB
+;;
+;; The crossover is between 19 and 25, and it is structural: PeTTa's cost tracks
+;; the raw proof-tree space while this tracks the deduplicated theorem space, and
+;; the dedup factor grows 2.95x / 4.55x / 12.2x over sizes 13 / 15 / 19.  The
+;; standing trade is memory - a set-of-all-theorems against one Prolog stack
+;; path - and it is the same decision read two ways.
+
+;; Load Peano to Integer conversion.
+(exec (0)
+      (I (ACT peano (toPeanoFn $x $k)))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
+
+;; Precompute increment and decrement tables for integer.
+(exec (1)
+      (, (fromPeanoFn $x $y)
+         (fromPeanoFn (S $x) $sy))
+      (, (incFn $y $sy)
+         (decFn $sy $y)))
+
+;; Load lte and produce gte.
+(exec (1)
+      (I (ACT lte (lte $x $y))
+         (BTM (fromPeanoFn $x $xi))
+         (BTM (fromPeanoFn $y $yi)))
+      (, (gte $yi $xi)))
+
+;; Theorem/proof axioms (all `→`)
+(axiom (c: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (c: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (c: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+
+;; Define target query, of the form
+;;
+;; (target MAX_PROOF_SIZE QUERY)
+
+;; impid (Implied Identity) (size=3, time=0.015s)
+(target 3 (c: (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)) $x))
+
+;; id (size=5, time=0.016s, time-up-to=0.020s)
+(target 5 (c: (→ 𝜑 𝜑) $x))
+
+;; pm2.43 (size=7, time=0.020s, time-up-to=0.025s)
+(target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
+
+;; jarr (size=13, time=0.082s, time-up-to=0.096s)
+(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+
+;; pm2.27 (size=13, time=0.074s, time-up-to=0.140s)
+(target 13 (c: (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)) $x))
+
+;; imim1 (size=15, time=0.334s, time-up-to=0.588s)
+(target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
+
+;; loowoz (size=19, time=7.200s, time-up-to=8.177s)
+(target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
+
+;; pm2.83 (size=25, time=11m7.365s, time-up-to=?)
+(target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
+
+;; ;; loolin (size=26, time=?, time-up-to=?)
+;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
+
+;; Outer init
+(exec (2)
+      (, (target $mps (c: $ta $tx)))
+      (, (sol $mps 1 (-> $ta $ta))
+         (exec (2 $mps)
+               (, (exec (2 $ski) $ptrn $tplt)
+                  (decFn $ski $ki)
+                  (gte $ki $hi)
+                  (incFn $hi $shi)
+                  ; Note that having axiom here is 15% faster than
+                  ; having it next to sol to form a join match.  Why?
+                  (axiom (c: $r $ap)))
+               (, (exec (3 0)
+                        (, (sol $ski $shi (-> $ap $b)))
+                        (, (sol $ki $hi $b)))
+                  (exec (4 0)
+                        (, (sol $ski $hi (-> $b $c)))
+                        (, (sol $ki $shi (-> (→ $a $b) (-> $a $c)))))
+                  (exec (7 0)
+                        (,)
+                        (, (exec (2 $ki) $ptrn $tplt)))))))
+
+;; Termination.  Actual proofs are replaced by the symbol `forgot`.
+(exec (3 0 0)
+      (, (target $mps (c: $ta $tx))
+         (sol 0 0 $ta))
+      (, (final 0 0 $ta)))
+
+;; Remove binary relations
+(exec (5 0 0)
+      (,)
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove incFn)
+         (binRelToRemove decFn)
+         (binRelToRemove gte)))
+(exec (5 0 1)
+      (, (binRelToRemove $r)
+         ($r $x $y))
+      (O (- (binRelToRemove $r))
+         (- ($r $x $y))))
+
+;; The code to construct the proofs has been disabled but is kept for
+;; potential future use.
+
+;; ;; Termination
+;; ;; ---- Phase 2: proof extraction.  No derivation edges are stored -- both rules
+;; ;; ---- are invertible, so `sol` is its own reachability oracle.  Both loops are
+;; ;; ---- specialized exactly as the main loop is: the outer grounds the level and
+;; ;; ---- hypothesis indices, so every `sol`/`pf` lookup is a prefix-restricted
+;; ;; ---- probe instead of a scan.
+;; (exec (3 0 0)
+;;  (, (target $mps (c: $ta $tx))
+;;     (sol 0 0 $ta))
+;;  (, (want 0 0 $ta)
+;;     ;; Backward: mark the target's ancestor cone.  Counts UP, 0 -> mps.
+;;     (exec (3 1 0)
+;;           (, (exec (3 1 $ki) $bp $bt)
+;;              (incFn $ki $ski)
+;;              (gte $mps $ski)
+;;              (gte $ki $hi)
+;;              (incFn $hi $shi)
+;;              (axiom (c: $wr $wap)))
+;;           (, (exec (3 2 0)
+;;                    (, (want $ki $hi $wb)
+;;                       (sol $ski $shi (-> $wap $wb)))
+;;                    (, (want $ski $shi (-> $wap $wb))))
+;;              (exec (3 3 0)
+;;                    (, (want $ki $shi (-> (→ $va $vb) (-> $va $vc)))
+;;                       (sol $ski $hi (-> $vb $vc)))
+;;                    (, (want $ski $hi (-> $vb $vc))))
+;;              (exec (3 4 0) (,) (, (exec (3 1 $ski) $bp $bt)))))
+;;     ;; Seed the proof at the source.
+;;     (exec (3 4 9)
+;;           (, (want $mps 1 (-> $ta $ta)))
+;;           (, (pf $mps 1 (-> $ta $ta) I)))
+;;     ;; Forward: build proofs inside the cone.  Counts DOWN, mps -> 0.
+;;     (exec (3 5 $mps)
+;;           (, (exec (3 5 $psk) $fp $ft)
+;;              (decFn $psk $pk)
+;;              (gte $pk $ph)
+;;              (incFn $ph $psh)
+;;              (axiom (c: $pr $pap)))
+;;           (, (exec (3 6 0)
+;;                    (, (pf $psk $psh (-> $pap $pb) $pf1)
+;;                       (want $pk $ph $pb))
+;;                    (, (pf $pk $ph $pb ($pr $pf1))))
+;;              (exec (3 7 0)
+;;                    (, (pf $psk $ph (-> $qb $qc) $pf2)
+;;                       (want $pk $psh (-> (→ $qa $qb) (-> $qa $qc))))
+;;                    (, (pf $pk $psh (-> (→ $qa $qb) (-> $qa $qc)) (mpⁱ $pf2))))
+;;              (exec (3 8 0) (,) (, (exec (3 5 $pk) $fp $ft)))))))
+
+;; ;; Emit
+;; (exec (3 9 9)
+;;  (, (target $mps (c: $ta $tx))
+;;     (pf 0 0 $ta $prf))
+;;  (, (final (c: $ta $prf))))
