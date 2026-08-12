@@ -125,3 +125,17 @@
  (, (target $mps (c: $ta $tx))
     (sol 0 0 (c: $ta $tx)))
  (, (final 0 0 (c: $ta $tx))))
+
+;; Remove binary relations
+(exec (5 0 0)
+      (,)
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove incFn)
+         (binRelToRemove decFn)
+         (binRelToRemove gte)))
+(exec (5 0 1)
+      (, (binRelToRemove $r)
+         ($r $x $y))
+      (O (- (binRelToRemove $r))
+         (- ($r $x $y))))
