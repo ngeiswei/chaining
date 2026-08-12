@@ -72,6 +72,49 @@
             (ab (: $x $a)))
          (, (sol $path 1 (: $x $a)))))
 
+;; Recursive step (product).  The budget needs to be at least 2, 1 for
+;; the first argument and 1 for second argument.  The product itself
+;; `,` does not cost anything because it is a virtual intermediary
+;; proof step.
+(= (obc $budget $path (: (, $x $y) (, $a $b)))
+   (exec (1 $path obc_product_init)
+         (, (lte 2 $budget))
+         (O ;; Recurse on first premise
+            (pure (! (obc $bx ($path 0) (: $x $a)))
+                  $bx
+                  ;; Calculate new budget, $budget - 1, for premise 1
+                  ;; NEXT: maybe check if new budget is greater than 1
+                  (i8_to_string (sub_i8 (i8_from_string $budget) (i8_from_string 1))))
+            ;; Evaluate all function calls prefixed by a bang
+            (+ (exec (5 * main)
+                     (, (! $fx) (= $fx $bdy))
+                     (O (- (! $fx)) (+ $bdy))))
+            ;; Resume recursion
+            (+ (exec (9 ($path 0) obc_product_2nd_arg)
+                     (, ;; Get solutions of recursion on first premise
+                        (sol ($path 0) $sx (: $x $a)))
+                     (O ;; Recurse on second premise
+                        (pure (! (obc $bx ($path ($x 1)) (: $y $b)))
+                              $by
+                              ;; Calculate new budget, $budget - $sx, for premises 2
+                              ;; NEXT: maybe check if new budget is greater than 1
+                              (i8_to_string (sub_i8 (i8_from_string $budget)
+                                                    (i8_from_string $sx))))
+                        ;; Evaluate all function calls prefixed by a bang
+                        (+ (exec (5 * main)
+                                 (, (! $fx) (= $fx $bdy))
+                                 (O (- (! $fx)) (+ $bdy))))
+                        ;; Resume recursion
+                        (+ (exec (9 ($path ($f 1)) obc_product_final)
+                                 (, (sol ($path 0) $sx (: $x $a))
+                                    (sol ($path ($x 1)) $sb (: $y $b))
+                                    ;; Calculate product proof size
+                                    (plusFn $sx $sy $s)
+                                    ;; Make sure that it does not exceed budget
+                                    (lte $s $budget))
+                                 ;; Build product solution
+                                 (, (sol $path $s (: (, $x $y) (, $a $b))))))))))))
+
 ;; Recursive step (modus ponens).  The budget needs to be at least 3,
 ;; 1 for modus ponens, 2 for the two premises.
 (= (obc $budget $path (: (mp $f $x) $b))
