@@ -6,8 +6,6 @@
 ;; WARNING: don't forget to run [gen-peano.mm2](gen-peano.mm2) and
 ;; [gen-lte.mm2](gen-lte.mm2) prior to running that code.
 
-;; NEXT: decompose n-ary rules into product target ,.
-
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Knowledge Bases ;;
 ;;;;;;;;;;;;;;;;;;;;;
@@ -15,7 +13,7 @@
 ;; Axiom base
 (ab (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
 (ab (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
-;; (ab (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+(ab (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Backward Chainer ;;
@@ -72,16 +70,18 @@
             (ab (: $x $a)))
          (, (sol $path 1 (: $x $a)))))
 
-;; Recursive step (product).  The budget needs to be at least 2, 1 for
-;; the first argument and 1 for second argument.  The product itself
-;; `,` does not cost anything because it is a virtual intermediary
-;; proof step.
+;; Recursive step (product)
 ;;
 ;; WARNING: supports only binary product because obc is called on
 ;; second premise instead of obc_prod.
 (= (obc_prod $budget $path (: (, $x $y) (, $a $b)))
    (exec (1 $path obc_product_init)
-         (, (lte 2 $budget)
+         (, ;; The budget needs to be at least 2, 1 for the first
+            ;; argument and 1 for second argument.  The product itself
+            ;; does not cost anything because it is a virtual
+            ;; intermediary proof step.
+            (lte 2 $budget)
+            ;; Calculate budget of first argument
             (plusFn 1 $bx $budget))
          (, ;; Recurse on first premise
             (! (obc $bx ($path 0) (: $x $a)))
@@ -168,8 +168,6 @@
                $z
                (i8_to_string (sum_i8 (i8_from_string $x) (i8_from_string $y))))))
 
-;; (! (obc_prod 2 . (: (, $x $y) (, (→ 𝜑 (→ 𝜓 𝜑)) (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)))))))
-
 ;; Turn target into obc call
 (exec (2)
       (, (target $budget (: $x $a)))
@@ -177,13 +175,13 @@
 
 ;; We use depth instead of proof size as budget for now
 
-;; ;; impid (Implied Identity) (size=3, time=?)
+;; ;; impid (Implied Identity) (size=3, time=0.023s)
 ;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id (size=5, time=?, time-up-to=?)
+;; ;; id (size=5, time=0.025s, time-up-to=0.025s)
 ;; (target 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43 (size=7, time=?, time-up-to=?)
+;; ;; pm2.43 (size=7, time=0.057s, time-up-to=0.067s)
 ;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; jarr (size=13, time=?, time-up-to=?)
