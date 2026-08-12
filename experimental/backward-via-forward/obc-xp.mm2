@@ -16,11 +16,7 @@
 ;; Knowledge Bases ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-;; Rule base up to index 8 included
-;; (rb (: id (-> $𝜑 $𝜑)))
-(rb (: mp (-> (→ $𝜑 $𝜓) $𝜑 $𝜓)))
-
-;; Axiom base up to index 8 included
+;; Axiom base
 (ab (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
 (ab (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
 ;; (ab (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
@@ -71,15 +67,14 @@
             (ab (: $x $a)))
          (, (sol $path 1 (: $x $a)))))
 
-;; Recursive step (binary).  The budget needs to be at least 3, 1 for
-;; the rule, 2 for the two premises.
-(= (obc $budget $path (: ($f $x1 $x2) $b))
+;; Recursive step (modus ponens).  The budget needs to be at least 3,
+;; 1 for modus ponens, 2 for the two premises.
+(= (obc $budget $path (: (mp $f $x) $b))
    (exec (1 $path obc_binary_init)
-         (, (lte 3 $budget)
-            (rb (: $f (-> $a1 $a2 $b))))
+         (, (lte 3 $budget))
          (O ;; Recurse on first premise
-            (pure (! (obc $b1 ($path 0) (: $x1 $a1)))
-                  $b1
+            (pure (! (obc $bf ($path 0) (: $f (→ $a $b))))
+                  $bf
                   ;; Calculate new budget, $budget - 2, for premise 1
                   ;; NEXT: maybe check if new budget is greater than 1
                   (i8_to_string (sub_i8 (i8_from_string $budget) (i8_from_string 2))))
@@ -90,24 +85,23 @@
             ;; Resume recursion
             (+ (exec (9 ($path 0) obc_binary_2nd_arg)
                      (, ;; Get solutions of recursion on first premise
-                        (sol ($path 0) $s1 (: $x1 $a1))
-                        ;; Get binary rules (NEXT: do I really need that since it was obtained above?)
-                        (rb (: $f (-> $a1 $a2 $b))))
+                        (sol ($path 0) $sf (: $f (→ $a $b))))
                      (O ;; Recurse on second premise
-                        (pure (! (obc $b2 ($path 1) (: $x2 $a2)))
-                              $b2
-                              ;; Calculate new budget, $budget - $s1 - 1, for premises 2
+                        (pure (! (obc $bx ($path 1) (: $x $a)))
+                              $bx
+                              ;; Calculate new budget, $budget - $sf - 1, for premises 2
                               ;; NEXT: maybe check if new budget is greater than 1
                               (i8_to_string (sub_i8 (sub_i8 (i8_from_string $budget)
-                                                            (i8_from_string $s1))
+                                                            (i8_from_string $sf))
                                                     (i8_one))))
+                        ;; Evaluate all function calls prefixed by a bang
                         (+ (exec (5 * main)
                                  (, (! $fx) (= $fx $bdy))
                                  (O (- (! $fx)) (+ $bdy))))
+                        ;; Resume recursion
                         (+ (exec (9 ($path 1) obc_binary_final)
-                                 (, (sol ($path 0) $s1 (: $x1 $a1))
-                                    (sol ($path 1) $s2 (: $x2 $a2))
-                                    (rb (: $f (-> $a1 $a2 $b))))
+                                 (, (sol ($path 0) $sf (: $f (→ $a $b)))
+                                    (sol ($path 1) $sx (: $x $a)))
                                  ;; NEXT: make sure that it does not
                                  ;; go over the total budget for this
                                  ;; iteration, which should be $budget
@@ -115,10 +109,10 @@
                                  ;; $s <= $budget.  If that condition
                                  ;; is not met then sol should not be
                                  ;; produced.
-                                 (O (pure (sol $path $s (: ($f $x1 $x2) $b))
+                                 (O (pure (sol $path $s (: (mp $f $x) $b))
                                           $s (i8_to_string (sum_i8 (i8_one)
-                                                                   (i8_from_string $s1)
-                                                                   (i8_from_string $s2)))))))))))))
+                                                                   (i8_from_string $sf)
+                                                                   (i8_from_string $sx)))))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function call evaluator ;;
@@ -160,11 +154,11 @@
 ;; ;; id (size=5, time=?, time-up-to=?)
 ;; (target 5 (: $x (→ 𝜑 𝜑)))
 
-;; pm2.43 (size=7, time=?, time-up-to=?)
-(target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;; ;; pm2.43 (size=7, time=?, time-up-to=?)
+;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
-;; ;; jarr (size=13, time=?, time-up-to=?)
-;; (target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; jarr (size=13, time=?, time-up-to=?)
+(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
 ;; ;; pm2.27 (size=13, time=?, time-up-to=?)
 ;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
