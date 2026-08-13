@@ -82,24 +82,25 @@
             ;; intermediary proof step.
             (lte 2 $budget)
             ;; Calculate budget of first argument
-            (plusFn 1 $bx $budget))
+            (plusFn 1 $bx $budget)
+            ;; Grab bang evaluator for premise 1
+            (evaluate-bangs $evaluate-bangs-1))
          (, ;; Recurse on first premise
             (! (obc $bx ($path 0) (: $x $a)))
             ;; Evaluate all function calls prefixed by a bang
-            (exec (5 * main)
-                  (, (! $fx) (= $fx $bdy))
-                  (O (- (! $fx)) (+ $bdy)))
+            $evaluate-bangs-1
             ;; Resume recursion
             (exec (9 ($path 0) obc_product_2nd_arg)
-                  ;; Get solutions of recursion on first premise
-                  (, (sol ($path 0) $sx (: $x $a))
-                     (plusFn $sx $by $budget))
+                  (, ;; Get solutions of recursion on first premise
+                     (sol ($path 0) $sx (: $x $a))
+                     ;; Calculate budget for premise 2
+                     (plusFn $sx $by $budget)
+                     ;; Grab bang evaluator for premise 2
+                     (evaluate-bangs $evaluate-bangs-2))
                   ;; Recurse on second premise
                   (, (! (obc $by ($path ($x 1)) (: $y $b)))
                      ;; Evaluate all function calls prefixed by a bang
-                     (exec (5 * main)
-                           (, (! $fx) (= $fx $bdy))
-                           (O (- (! $fx)) (+ $bdy)))
+                     $evaluate-bangs-2
                      ;; Resume recursion
                      (exec (9 ($path ($x 1)) obc_product_final)
                            (, ;; Retrieve proofs of premises
@@ -117,13 +118,13 @@
             ;; 2 for the two premises (the product)
             (lte 3 $budget)
             ;; Calculate budget for product
-            (plusFn 1 $bp $budget))
+            (plusFn 1 $bp $budget)
+            ;; Grab bang evaluator
+            (evaluate-bangs $evaluate-bangs))
          (, ;; Recurse on product
             (! (obc_prod $bp $path (: (, $f $x) (, (→ $a $b) $a))))
             ;; Evaluate all function calls prefixed by a bang
-            (exec (5 * main)
-                  (, (! $fx) (= $fx $bdy))
-                  (O (- (! $fx)) (+ $bdy)))
+            $evaluate-bangs
             ;; Resume recursion
             (exec (9 $path obc_mp_final)
                   (, ;; Get solutions of product
@@ -138,9 +139,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Evaluate all function calls prefixed by a bang
-(exec (5 * main)
-      (, (! $fx) (= $fx $bdy))
-      (O (- (! $fx)) (+ $bdy)))
+(evaluate-bangs (exec (5 * main)
+                      (, (! $fx) (= $fx $bdy))
+                      (O (- (! $fx)) (+ $bdy))))
 
 ;;;;;;;;;;
 ;; Main ;;
@@ -173,34 +174,10 @@
       (, (target $budget (: $x $a)))
       (, (! (obc $budget . (: $x $a)))))
 
-;; We use depth instead of proof size as budget for now
-
-;; ;; impid (Implied Identity) (size=3, time=0.023s)
-;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
-
-;; ;; id (size=5, time=0.025s, time-up-to=0.025s)
-;; (target 5 (: $x (→ 𝜑 𝜑)))
-
-;; ;; pm2.43 (size=7, time=0.057s, time-up-to=0.067s)
-;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
-
-;; jarr (size=13, time=?, time-up-to=?)
-(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
-
-;; ;; pm2.27 (size=13, time=?, time-up-to=?)
-;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
-
-;; ;; imim1 (size=15, time=?, time-up-to=?)
-;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-
-;; ;; loowoz (size=19, time=?, time-up-to=?)
-;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
-
-;; ;; pm2.83 (size=25, time=?, time-up-to=?)
-;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
-
-;; ;; loolin (size=26, time=?, time-up-to=?)
-;; (target 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+;; Evaluate bangs
+(exec (3)
+      (, (evaluate-bangs $eb))
+      (, $eb))
 
 ;; Unify solution with target when maximum budget and hypotheses count
 ;; falls to zero.
@@ -231,3 +208,32 @@
          ($r $x $y $z))
       (O (- (triRelToRemove $r))
          (- ($r $x $y $z))))
+
+;; Uncomment the target(s) you wish to proof
+
+;; impid (Implied Identity) (size=3, time=0.023s)
+;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+
+;; id (size=5, time=0.025s, time-up-to=0.025s)
+;; (target 5 (: $x (→ 𝜑 𝜑)))
+
+;; pm2.43 (size=7, time=0.057s, time-up-to=0.067s)
+;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+
+jarr (size=13, time=135m36.343s, time-up-to=140m11.874s)
+(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+
+;; pm2.27 (size=13, time=118m25.610s, time-up-to=?)
+;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+
+;; ;; imim1 (size=15, time=?, time-up-to=?)
+;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+
+;; ;; loowoz (size=19, time=?, time-up-to=?)
+;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+
+;; ;; pm2.83 (size=25, time=?, time-up-to=?)
+;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+
+;; ;; loolin (size=26, time=?, time-up-to=?)
+;; (target 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
