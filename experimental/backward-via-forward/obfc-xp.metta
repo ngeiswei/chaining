@@ -1,3 +1,6 @@
+;; NEXT: write converter from mpⁱ to mp.
+;; NEXT: confirm that I should do not be counted as extra depth
+
 ;; Backward via forward chaining.  It works by forwadly generating
 ;; hypothetical truths (and their associated proof abstractions)
 ;; instead of absolute truths (and their associated proofs), then,
@@ -12,11 +15,11 @@
 ;; [combinators](https://hackage.haskell.org/package/data-aviary-0.4.0/docs/src/Data-Aviary-Birds.html)
 ;; one can apply modus ponens backward while doing forward chaining.
 ;;
-;; The blackbird operator can be used to create a specialized rule to
-;; expand modus ponens backward on the first argument of any abstract
-;; proof:
+;; The blackbird operator, B₁, can be used to create a specialized
+;; rule to expand modus ponens backward on the first argument of any
+;; abstract proof:
 ;;
-;; mpⁱ = (λ z ((.: z) mp))
+;; mpⁱ = (λ z ((B₁ z) mp))
 ;;
 ;; with type signature
 ;;
@@ -54,6 +57,16 @@
 ;;;;;;;;;;;;;;;
 
 ;; Reduce proofs with mpⁱ into equivalent proofs with mp
+;; NEXT: implement
+
+;; Spontaneously reduce proofs using mpⁱ into proofs using mp.
+;; Comment out if you wish to disable.  For instance
+;;
+;; ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁)
+;;
+;; reduces to
+;;
+;; (mp (mp ax₂ ax₁) ax₁)
 ;; NEXT: implement
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -144,8 +157,8 @@
 ;; !(obfc 15 (: $x $a)) ; 233681, 19.622s
 ;; !(obfc 17 (: $x $a)) ; 1591750, 196.30s
 
-;; ;; id
-;; !(obfc 5 (: $x (→ 𝜑 𝜑)))
+;; id
+!(obfc 5 (: $x (→ 𝜑 𝜑)))
 
 ;; ;; pm2.43
 ;; !(obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
@@ -165,11 +178,11 @@
 ;; ;; imim1 (200ms)
 ;; !(obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (5.761s)
+;; ;; loowoz (1.823s)
 ;; !(obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
-;; pm2.83 (37m40.783s)
-!(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+;; ;; pm2.83 (37m40.783s)
+;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
 ;; ;; loolin (32m17.697s)
 ;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
