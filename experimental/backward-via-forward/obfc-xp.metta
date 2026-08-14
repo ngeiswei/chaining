@@ -1,6 +1,3 @@
-;; NEXT: write converter from mpⁱ to mp.
-;; NEXT: confirm that I should do not be counted as extra depth
-
 ;; Backward via forward chaining.  It works by forwadly generating
 ;; hypothetical truths (and their associated proof abstractions)
 ;; instead of absolute truths (and their associated proofs), then,
@@ -56,18 +53,116 @@
 ;; Reduction ;;
 ;;;;;;;;;;;;;;;
 
-;; Reduce proofs with mpⁱ into equivalent proofs with mp
-;; NEXT: implement
-
-;; Spontaneously reduce proofs using mpⁱ into proofs using mp.
-;; Comment out if you wish to disable.  For instance
+;; Reduce proofs containing mpⁱ into proofs containing mp.  Comment
+;; For instance
 ;;
 ;; ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁)
 ;;
 ;; reduces to
 ;;
 ;; (mp (mp ax₂ ax₁) ax₁)
-;; NEXT: implement
+;;
+;; If MeTTa could automatically curry, such implementation would
+;; merely look like
+;;
+;; (= (mpⁱ $f) (B₁ $f mp))
+;; (= (B₁ $f $g $x $y) ($f ($g $x $y)))
+;; (= (I $x) $x)
+;;
+;; which, by-passing B₁, simplifies to
+;;
+;; (= (mpⁱ $f $x $y) ($f (mp $x $y)))
+;; (= (I $x) $x)
+;;
+;; How it does so we have to implement it as a separate function,
+;; reduce-proof.
+
+;; Reduce (I $x) to $x
+;; (: reduce-I (-> $a (Maybe $a)))
+(= (reduce-I $term)
+   (case $term
+     ((($i $x) (if (== $i I) (Just $x) Nothing))
+      ($_ Nothing))))
+
+;; Test reduce-I
+!(test
+  (reduce-I (I ax₁))
+  (Just ax₁))
+
+;; Reduce (((mpⁱ $f) $x) $y) to ($f (mp $x $y))
+;; (: reduce-mpⁱ (-> $a (Maybe $a)))
+(= (reduce-mpⁱ $term)
+   (case $term
+     ((((($m $f) $x) $y) (if (== $m mpⁱ) (Just ($f (mp $x $y))) Nothing))
+      ($_ Nothing))))
+
+;; Test reduce-mpⁱ
+!(test
+  (reduce-mpⁱ (((mpⁱ I) ax₂) ax₁))
+  (Just (I (mp ax₂ ax₁))))
+!(test
+  (reduce-mpⁱ (((mpⁱ (mpⁱ I)) ax₂) ax₁))
+  (Just ((mpⁱ I) (mp ax₂ ax₁))))
+!(test
+  (reduce-mpⁱ (((mpⁱ I) (mp ax₂ ax₁)) ax₁))
+  (Just (I (mp (mp ax₂ ax₁) ax₁))))
+
+;; Reduce proof
+;; (: reduce-proof (-> $a $a))
+(= (reduce-proof $term)
+   (case (get-metatype $term)
+     (;; Base cases
+      (Symbol $term)
+      (Grounded $term)
+      (Variable $term)
+      (Expression
+       (if (== $term ())
+           ()
+           ;; Recusive steps
+           (case $term
+             ;; Unary application
+             ((($f $g) (let* (($νf (reduce-proof $f))
+                              ($νg (reduce-proof $g)))
+                         (if (and (== $νf $f) (== $νg $g))
+                             ;; $f and $g are already reduced,
+                             ;; try to match them to an known reduction rule
+                             (case (reduce-I $term)
+                               (((Just $r) (reduce-proof $r))
+                                (Nothing
+                                 (case (reduce-mpⁱ $term)
+                                   (((Just $r) (reduce-proof $r))
+                                    ;; No known reduction rule,
+                                    ;; Return as it is
+                                    (Nothing ($f $g)))))))
+                             (reduce-proof ($νf $νg)))))
+              ($else $else))))))))
+
+;; Test reduce-proof
+!(test
+  (reduce-proof (((mpⁱ I) ax₂) ax₁))
+  (mp ax₂ ax₁))
+!(test
+  (reduce-proof ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁))
+  (mp (mp ax₂ ax₁) ax₁))
+
+;; Reduce typeof relationship
+(= (reduce-typeof (: $x $a)) (: (reduce-proof $x) $a))
+
+;; Test reduce-typeof
+;; impid
+!(test
+  (reduce-typeof (: (((mpⁱ I) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+  (: (mp ax₂ ax₁) (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+;; loowoz
+!(test
+  (reduce-typeof (: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+  (: (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ (mp ax₁ (mp (mp ax₂ ax₂) (mp ax₁ ax₁)))) ax₁)) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+!(test
+  (reduce-typeof (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+  (: (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ (mp (mp ax₂ (mp ax₁ ax₂)) ax₁)) (mp ax₁ ax₁))) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+!(test
+  (reduce-typeof (: ((((mpⁱ (((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂)) ax₁) ax₂))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+  (: (mp (mp ax₂ (mp ax₁ (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ ax₂) (mp ax₁ ax₁))))) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Optimized Forward Chainer ;;
@@ -157,32 +252,69 @@
 ;; !(obfc 15 (: $x $a)) ; 233681, 19.622s
 ;; !(obfc 17 (: $x $a)) ; 1591750, 196.30s
 
-;; id
-!(obfc 5 (: $x (→ 𝜑 𝜑)))
+;; ;; impid (Implied Identity)
+;; !(test
+;;   (obfc 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+;;   (: (((mpⁱ I) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+
+;; ;; id
+;; !(test
+;;   (obfc 5 (: $x (→ 𝜑 𝜑)))
+;;   (: ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁) (→ 𝜑 𝜑)))
 
 ;; ;; pm2.43
-;; !(obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;; !(test
+;;   (obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;;   (: (((mpⁱ (((mpⁱ (mpⁱ I)) ax₂) ax₂)) ax₂) ax₁) (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; 2a1
-;; !(obfc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
+;; !(test
+;;   (obfc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
+;;   (: ((((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₁) ax₁) (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
 
 ;; ;; imim2 (82ms)
-;; !(obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
+;; !(test
+;;   (obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
+;;   (: ((((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
 
 ;; ;; jarr (100ms)
-;; !(obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; !(test
+;;   (collapse (obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
+;;   ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
+;;    (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ I)) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
 
 ;; ;; pm2.27
-;; !(obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+;; !(test
+;;   (obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+;;   (: (((((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁)) ax₂))) ax₂) ax₁) ax₁) ax₁) (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
 ;; ;; imim1 (200ms)
-;; !(obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+;; !(test
+;;   (obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+;;   (: (((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁)) ax₂))) ax₂)) ax₁) ax₂) ax₁) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
 ;; ;; loowoz (1.823s)
-;; !(obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+;; ;;
+;; ;; NEXT: the following (from obc-xp.metta)
+;; ;;
+;; ;; !(obc 17 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+;; ;;
+;; ;; is able to discover simpler proofs
+;; ;;
+;; ;; (mp (mp (mp ax₂ (mp (mp ax₂ (mp ax₂ ax₂)) (mp ax₂ ax₂))) (mp ax₂ ax₂)) ax₁)
+;; ;; (mp (mp (mp (mp ax₂ ax₂) ax₁) (mp (mp ax₂ ax₂) ax₁)) (mp (mp ax₂ ax₂) ax₁))
+;; ;; (mp (mp (mp (mp ax₂ (mp ax₂ ax₂)) (mp ax₂ ax₂)) ax₁) (mp (mp ax₂ ax₂) ax₁))
+;; ;;
+;; ;; Additionally the same call with maximum size 19 can discover 35
+;; ;; proofs instead of 3.
+;; !(test
+;;   (collapse (obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
+;;   ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
+;;    (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
+;;    (: ((((mpⁱ (((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂)) ax₁) ax₂))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
 
-;; ;; pm2.83 (37m40.783s)
-;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+;; pm2.83 (37m40.783s)
+!(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
 ;; ;; loolin (32m17.697s)
 ;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
