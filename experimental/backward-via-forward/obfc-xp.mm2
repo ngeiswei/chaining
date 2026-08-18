@@ -150,7 +150,7 @@
 ;; ;; imim1 (size=15, time=2.166s, time-up-to=2.750s)
 ;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
 
-;; ;; loowoz (size=19, time=1m29.280s, time-up-to=1m32.013s)
+;; ;; loowoz (size=19, time=16.804s, time-up-to=1m32.013s)
 ;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
 
 ;; ;; pm2.83 (size=25, time=114m56.189s, time-up-to=130m50.420s)
