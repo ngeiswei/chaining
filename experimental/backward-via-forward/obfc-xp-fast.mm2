@@ -1,3 +1,5 @@
+;; NEXT: revert c: to : if it is not slower
+
 ;; obfc-xp-fast.mm2 — Faster variant of obfc-xp.mm2
 ;;
 ;; Warning: make sure that [gen-peano.mm2](gen-peano.mm2) and
