@@ -214,16 +214,16 @@
 ;; impid (Implied Identity) (size=3, time=0.023s)
 ;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; id (size=5, time=0.025s, time-up-to=0.025s)
+;; ;; id (size=5, time=0.025s, time-up-to=0.025s)
 ;; (target 5 (: $x (→ 𝜑 𝜑)))
 
-;; pm2.43 (size=7, time=0.057s, time-up-to=0.067s)
+;; ;; pm2.43 (size=7, time=0.057s, time-up-to=0.067s)
 ;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
-jarr (size=13, time=135m36.343s, time-up-to=140m11.874s)
+;; jarr (size=13, time=135m36.343s, time-up-to=140m11.874s)
 (target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; pm2.27 (size=13, time=118m25.610s, time-up-to=?)
+;; ;; pm2.27 (size=13, time=118m25.610s, time-up-to=?)
 ;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
 ;; ;; imim1 (size=15, time=?, time-up-to=?)
