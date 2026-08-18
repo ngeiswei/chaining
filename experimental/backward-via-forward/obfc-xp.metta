@@ -277,11 +277,11 @@
 ;;   (obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
 ;;   (: ((((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
 
-;; ;; jarr (100ms)
-;; !(test
-;;   (collapse (obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
-;;   ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
-;;    (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ I)) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
+;; jarr (100ms)
+!(test
+  (collapse (obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
+  ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
+   (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ I)) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
 
 ;; ;; pm2.27
 ;; !(test
@@ -294,27 +294,14 @@
 ;;   (: (((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁)) ax₂))) ax₂)) ax₁) ax₂) ax₁) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
 ;; ;; loowoz (1.823s)
-;; ;;
-;; ;; NEXT: the following (from obc-xp.metta)
-;; ;;
-;; ;; !(obc 17 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
-;; ;;
-;; ;; is able to discover simpler proofs
-;; ;;
-;; ;; (mp (mp (mp ax₂ (mp (mp ax₂ (mp ax₂ ax₂)) (mp ax₂ ax₂))) (mp ax₂ ax₂)) ax₁)
-;; ;; (mp (mp (mp (mp ax₂ ax₂) ax₁) (mp (mp ax₂ ax₂) ax₁)) (mp (mp ax₂ ax₂) ax₁))
-;; ;; (mp (mp (mp (mp ax₂ (mp ax₂ ax₂)) (mp ax₂ ax₂)) ax₁) (mp (mp ax₂ ax₂) ax₁))
-;; ;;
-;; ;; Additionally the same call with maximum size 19 can discover 35
-;; ;; proofs instead of 3.
 ;; !(test
 ;;   (collapse (obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
 ;;   ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
 ;;    (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
 ;;    (: ((((mpⁱ (((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂)) ax₁) ax₂))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
 
-;; pm2.83 (37m40.783s)
-!(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+;; ;; pm2.83 (37m40.783s)
+;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
 ;; ;; loolin (32m17.697s)
 ;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
