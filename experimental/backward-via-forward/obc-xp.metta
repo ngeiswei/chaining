@@ -40,13 +40,13 @@
 (= (obc-gtz $s (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
    (MkSized 1 (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)))))
 (= (obc-gtz $s (: (mp $f $x) $b))
-   (if (< 2 $s)
+   (if (< 2 $s) ; The budget must be at least 3
        (let* (((MkSized $fs (: $f (→ $a $b))) (obc (- $s 2) (: $f (→ $a $b))))
               ((MkSized $xs (: $x $a)) (obc (- (- $s 1) $fs) (: $x $a))))
          (MkSized (+ (+ $fs $xs) 1) (: (mp $f $x) $b)))
        (empty)))
 (= (obc $s (: $x $a))
-   (if (< 0 $s)
+   (if (< 0 $s) ; The budget must be at least 1
        (obc-gtz $s (: $x $a))
        (empty)))
 
@@ -87,9 +87,11 @@
 ;; !(obc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
 ;; ;; imim1 (140ms)
-;; !(obc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+;; !(test
+;;   (obc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+;;   (MkSized 15 (: (mp (mp ax₂ (mp ax₁ (mp ax₂ (mp (mp ax₂ (mp ax₁ ax₂)) ax₁)))) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))))
 
-;; ;; loowoz (~3.309s)
+;; ;; loowoz (3.309s)
 ;; !(obc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
 ;; ;; pm2.83 (19m29.217s)
