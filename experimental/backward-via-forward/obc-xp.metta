@@ -9,6 +9,9 @@
 ;; are defined locally (originally borrowed from
 ;; experimental/metamath/pc-xp.metta).
 
+;; Disable co-unification
+!(translatePredicate (set_prolog_flag occurs_check True))
+
 ;;;;;;;;;;;;;;;
 ;; Sized ;;
 ;;;;;;;;;;;;;;;
