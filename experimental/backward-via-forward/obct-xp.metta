@@ -106,6 +106,34 @@
 (= (obct $s (: $x $a))
    (obct-rec $s $s 1 (, (c: (-> $a $a) I) (: $x $a))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Convert proof containing mp into equivalent proof containing mpⁱ ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(= (inv-reduce-proof $prf) NEXT)
+
+;; NEXT: remove expect unit tests to move to obct
+;;
+;; ;; Test inv-reduce-proof
+;; ;; impid
+;; !(test
+;;   (inv-reduce-proof (mp ax₂ ax₁))
+;;   (((mpⁱ I) ax₂) ax₁))
+;; ;; id
+;; !(test
+;;   (inv-reduce-proof (mp (mp ax₂ ax₁) ax₁))
+;;   ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁))
+;; ;; loowoz
+;; !(test
+;;   (inv-reduce-proof (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ (mp ax₁ (mp (mp ax₂ ax₂) (mp ax₁ ax₁)))) ax₁)))
+;;   ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁))
+;; !(test
+;;   (inv-reduce-proof (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ (mp (mp ax₂ (mp ax₁ ax₂)) ax₁)) (mp ax₁ ax₁))))
+;;   (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁))
+;; !(test
+;;   (inv-reduce-proof (mp (mp ax₂ (mp ax₁ (mp (mp ax₂ (mp ax₁ ax₂)) (mp (mp ax₂ ax₂) (mp ax₁ ax₁))))) ax₁))
+;;   ((((mpⁱ (((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂)) ax₁) ax₂))) ax₂) ax₂)) ax₁) ax₁) ax₁))
+
 ;;;;;;;;;;;;;;;
 ;; Test obct ;;
 ;;;;;;;;;;;;;;;
@@ -127,8 +155,8 @@
 ;; ;; id
 ;; !(obct 5 (: $x (→ 𝜑 𝜑)))
 
-;; pm2.43
-!(obct 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;; ;; pm2.43
+;; !(obct 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; 2a1
 ;; !(obct 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
@@ -136,8 +164,8 @@
 ;; ;; imim2 (81ms)
 ;; !(obct 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓))))
 
-;; ;; jarr (90ms)
-;; !(obct 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; jarr (90ms)
+!(obct 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
 ;; ;; pm2.27
 ;; !(obct 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
