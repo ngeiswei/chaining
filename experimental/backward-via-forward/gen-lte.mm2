@@ -5,8 +5,8 @@
 ;; previously executed.
 (exec Pre (I (ACT peano (toPeanoFn $x $k))) (, (toPeanoFn $x $k)))
 
-;; Number representing a bound (here 26)
-(NumBound 26)
+;; Number representing a bound (here 36)
+(NumBound 36)
 
 ;; Initialize
 (exec Init
