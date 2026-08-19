@@ -65,55 +65,53 @@
       (, (gte $yi $xi)))
 
 ;; Theorem/proof axioms (all `→`)
-(axiom (c: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
-(axiom (c: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
-(axiom (c: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+(axiom (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
 
 ;; Define target query, of the form
 ;;
 ;; (target MAX_PROOF_SIZE QUERY)
 
-;; ;; impid (Implied Identity) (size=3, time=0.005s)
-;; (target 3 (c: (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)) $x))
+;; ;; impid (Implied Identity) (size=3, time=0.013s)
+;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id (size=5, time=0.006s, time-up-to=0.008s)
-;; (target 5 (c: (→ 𝜑 𝜑) $x))
+;; ;; id (size=5, time=0.012s, time-up-to=0.013s)
+;; (target 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43 (size=7, time=0.010s, time-up-to=0.015s)
-;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
+;; ;; pm2.43 (size=7, time=0.014s, time-up-to=0.014s)
+;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
-;; jarr (size=13, time=0.143s, time-up-to=0.155s)
-(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; ;; jarr (size=13, time=0.053s, time-up-to=0.055s)
+;; (target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; ;; pm2.27 (size=13, time=0.137s, time-up-to=0.275s)
-;; (target 13 (c: (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)) $x))
+;; ;; pm2.27 (size=13, time=0.047s, time-up-to=0.087s)
+;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (size=15, time=0.924s, time-up-to=1.533s)
-;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
+;; ;; imim1 (size=15, time=0.231s, time-up-to=0.345s)
+;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (size=19, time=39.562s, time-up-to=44.324s)
-;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
+;; ;; loowoz (size=19, time=9.599s, time-up-to=9.899s)
+;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
 ;; ;; pm2.83 (size=25, time=?, time-up-to=?)
-;; (target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
+;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
 ;; ;; loolin (size=26, time=?, time-up-to=?)
-;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
+;; (target 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
 
 ;; Outer init
 (exec (2)
-      (, (target $mps (c: $ta $tx)))
+      (, (target $mps (: $tx $ta)))
       (, (sol $mps 1 (c: (-> $ta $ta) I))
          (exec (2 $mps)
                (, (exec (2 $ski) $ptrn $tplt)
                   (decFn $ski $ki)
                   (gte $ki $hi)
-                  (incFn $hi $shi)
-                  ; Note that having axiom here is 15% faster than
-                  ; having it next to sol to form a join match.  Why?
-                  (axiom (c: $r $ap)))
+                  (incFn $hi $shi))
                (, (exec (3 0)
-                        (, (sol $ski $shi (c: (-> $ap $b) $f)))
+                        (, (axiom (: $r $ap))
+                           (sol $ski $shi (c: (-> $ap $b) $f)))
                         (, (sol $ki $hi (c: $b ($f $r)))))
                   (exec (4 0)
                         (, (sol $ski $hi (c: (-> $b $c) $f)))
@@ -124,9 +122,9 @@
 
 ;; Termination
 (exec (3 0 0)
- (, (target $mps (c: $ta $tx))
+ (, (target $mps (: $tx $ta))
     (sol 0 0 (c: $ta $tx)))
- (, (final 0 0 (c: $ta $tx))))
+ (, (final 0 0 (: $tx $ta))))
 
 ;; Remove binary relations
 (exec (5 0 0)
