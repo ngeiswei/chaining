@@ -114,44 +114,55 @@
       (, (gte $yi $xi)))
 
 ;; Theorem/proof axioms (all `→`)
-(axiom (c: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
-(axiom (c: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
-(axiom (c: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+(axiom (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
 
 ;; Define target query, of the form
 ;;
 ;; (target MAX_PROOF_SIZE QUERY)
 
-;; ;; impid (Implied Identity) (size=3, time=0.015s)
-;; (target 3 (c: (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)) $x))
+;; ;; impid (Implied Identity) (size=3, time=0.013s)
+;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id (size=5, time=0.016s, time-up-to=0.020s)
-;; (target 5 (c: (→ 𝜑 𝜑) $x))
+;; ;; id (size=5, time=0.013s, time-up-to=0.013s)
+;; (target 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43 (size=7, time=0.020s, time-up-to=0.025s)
-;; (target 7 (c: (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)) $x))
+;; ;; pm2.43 (size=7, time=0.014s, time-up-to=0.016s)
+;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
-;; jarr (size=13, time=0.082s, time-up-to=0.096s)
-(target 13 (c: (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)) $x))
+;; jarr (size=13, time=0.034s, time-up-to=0.047s)
+(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; ;; pm2.27 (size=13, time=0.074s, time-up-to=0.140s)
-;; (target 13 (c: (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)) $x))
+;; ;; pm2.27 (size=13, time=0.033s, time-up-to=0.054s)
+;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (size=15, time=0.334s, time-up-to=0.588s)
-;; (target 15 (c: (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))) $x))
+;; ;; imim1 (size=15, time=0.104s, time-up-to=0.175s)
+;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (size=19, time=7.200s, time-up-to=8.177s)
-;; (target 19 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))) $x))
+;; ;; loowoz (size=19, time=1.958s, time-up-to=2.290s)
+;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
-;; ;; pm2.83 (size=25, time=11m7.365s, time-up-to=12m54.105s)
-;; (target 25 (c: (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))) $x))
+;; ;; pm2.83 (size=25, time=2m56.940s, time-up-to=3m5.135s)
+;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
-;; ;; loolin (size=26, time=?, time-up-to=?)
-;; (target 26 (c: (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)) $x))
+;; ;; loolin (size=25, time=2m4.873s, time-up-to=5m4.550s)
+;; (target 25 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+
+;; NEXT: determine depths
+
+;; ;; imim12 (size=?, time=?, time-up-to-?)
+;; (target 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
+
+;; ;; peirceroll (size=?, time=?, time-up-to-?)
+;; (target 32 (: $x (→ (→ (→ (→ 𝜑 𝜓) 𝜑) 𝜑) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ (→ 𝜒 𝜑) 𝜑)))))
+
+;; ;; pm2.86 (size=?, time=?, time-up-to-?)
+;; (target 32 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
 
 ;; Outer init
 (exec (2)
-      (, (target $mps (c: $ta $tx)))
+      (, (target $mps (: $tx $ta)))
       (, (sol $mps 1 (-> $ta $ta))
          (exec (2 $mps)
                (, (exec (2 $ski) $ptrn $tplt)
@@ -160,7 +171,7 @@
                   (incFn $hi $shi)
                   ; Note that having axiom here is 15% faster than
                   ; having it next to sol to form a join match.  Why?
-                  (axiom (c: $r $ap)))
+                  (axiom (: $r $ap)))
                (, (exec (3 0)
                         (, (sol $ski $shi (-> $ap $b)))
                         (, (sol $ki $hi $b)))
@@ -171,11 +182,11 @@
                         (,)
                         (, (exec (2 $ki) $ptrn $tplt)))))))
 
-;; Termination.  Actual proofs are replaced by the symbol `forgot`.
+;; Termination
 (exec (3 0 0)
-      (, (target $mps (c: $ta $tx))
-         (sol 0 0 $ta))
-      (, (final 0 0 $ta)))
+      (, (target $mps (: $tx $ta))
+         (sol $budget 0 $ta))
+      (, (final $budget 0 $ta)))
 
 ;; Remove binary relations
 (exec (5 0 0)
@@ -201,7 +212,7 @@
 ;; ;; ---- hypothesis indices, so every `sol`/`pf` lookup is a prefix-restricted
 ;; ;; ---- probe instead of a scan.
 ;; (exec (3 0 0)
-;;  (, (target $mps (c: $ta $tx))
+;;  (, (target $mps (: $tx $ta))
 ;;     (sol 0 0 $ta))
 ;;  (, (want 0 0 $ta)
 ;;     ;; Backward: mark the target's ancestor cone.  Counts UP, 0 -> mps.
@@ -211,7 +222,7 @@
 ;;              (gte $mps $ski)
 ;;              (gte $ki $hi)
 ;;              (incFn $hi $shi)
-;;              (axiom (c: $wr $wap)))
+;;              (axiom (: $wr $wap)))
 ;;           (, (exec (3 2 0)
 ;;                    (, (want $ki $hi $wb)
 ;;                       (sol $ski $shi (-> $wap $wb)))
@@ -231,7 +242,7 @@
 ;;              (decFn $psk $pk)
 ;;              (gte $pk $ph)
 ;;              (incFn $ph $psh)
-;;              (axiom (c: $pr $pap)))
+;;              (axiom (: $pr $pap)))
 ;;           (, (exec (3 6 0)
 ;;                    (, (pf $psk $psh (-> $pap $pb) $pf1)
 ;;                       (want $pk $ph $pb))
@@ -244,6 +255,6 @@
 
 ;; ;; Emit
 ;; (exec (3 9 9)
-;;  (, (target $mps (c: $ta $tx))
+;;  (, (target $mps (: $tx $ta))
 ;;     (pf 0 0 $ta $prf))
-;;  (, (final (c: $ta $prf))))
+;;  (, (final (: $prf $ta))))
