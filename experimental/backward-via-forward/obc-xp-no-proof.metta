@@ -36,17 +36,19 @@
        (empty)))
 (= (obc $s $a)
    (if (< 0 $s)
-       (obc-gtz $s $a)
+       ;; (unique
+        (obc-gtz $s $a)
+        ;; )
        (empty)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Test proof-sized bound optimized backward chainer ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ;; id
+;; ;; id (PeTTa=0.100s)
 ;; !(obc 5 (→ 𝜑 𝜑))
 
-;; ;; pm2.43
+;; ;; pm2.43 (PeTTa=0.101s)
 ;; !(obc 7 (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)))
 
 ;; ;; 2a1
@@ -55,27 +57,27 @@
 ;; ;; imim2
 ;; !(obc 7 (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓))))
 
-;; jarr
+;; jarr (PeTTa=0.111s, PeTTa-unique=0.155s)
 !(obc 13 (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
 
-;; ;; pm2.27
+;; ;; pm2.27 (PeTTa=0.110s, PeTTa-unique=0.179s)
 ;; !(obc 13 (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)))
 
-;; ;; imim1 (0.177s)
+;; ;; imim1 (PeTTa=0.199s, PeTTa-unique=0.675s)
 ;; !(obc 15 (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))
 
-;; ;; loowoz (4.194s)
+;; ;; loowoz (PeTTa=4.149s, PeTTa-unique=30.954s)
 ;; !(obc 19 (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
 
-;; ;; pm2.83 (29m6.771s)
+;; ;; pm2.83 (PeTTa=27m45.518s, PeTTa-unique=?)
 ;; !(obc 25 (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))))
 
-;; ;; loolin (?)
-;; !(obc 26 (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)))
+;; ;; loolin (PeTTa=22m48.448s, PeTTa-unique=?)
+;; !(obc 25 (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)))
 
 ;; NEXT: determine depths
 
-;; ;; imim12 (?) (was 25 and supposedly worked)
+;; ;; imim12 (?)
 ;; !(obc 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
 
 ;; ;; peirceroll
