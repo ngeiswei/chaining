@@ -77,9 +77,9 @@
 (= (obct-gtz $budget $depth $hypcnt
              (, (c: (-> $b $c) $o)
                 (: (mp $f $x) $b)))
-   (trace! (sol (- $depth 1) (+ $hypcnt 1) (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $o)))
    (if (< 2 $budget) ; The budget must be at least 3, 1 for mp and 1
                      ; per premise
+       (trace! (sol (- $depth 1) (+ $hypcnt 1) (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $o)))
        (let* (;; Recurse on first premise with proof $f
               ((MkSized $fs (, (c: (-> $a $c) $no) (: $f (→ $a $b))))
                (obct-rec (- $budget 2) ; Remove 1 for mp and 1 for $x
@@ -94,13 +94,13 @@
                          $hypcnt               ; mpⁱ and $f cancel out
                          (, (c: (-> $a $c) $no)
                             (: $x $a)))))
-         (MkSized (+ (+ $fs $xs) 1) (, (c: $c $nno) (: (mp $f $x) $b))))
-       (empty))))
+         (MkSized (+ (+ $fs $xs) 1) (, (c: $c $nno) (: (mp $f $x) $b)))))
+       (empty)))
 (= (obct-rec $budget $depth $hypcnt (, (c: $h $o) (: $x $a)))
-   (trace! (sol $depth $hypcnt (c: $h $o))
    (if (< 0 $budget)
-       (obct-gtz $budget $depth $hypcnt (, (c: $h $o) (: $x $a)))
-       (empty))))
+       (trace! (sol $depth $hypcnt (c: $h $o))
+       (obct-gtz $budget $depth $hypcnt (, (c: $h $o) (: $x $a))))
+       (empty)))
 
 ;; Entry point
 (= (obct $s (: $x $a))
@@ -161,32 +161,30 @@
 ;; ;; 2a1
 ;; !(obct 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
 
-;; ;; imim2 (81ms)
+;; ;; imim2
 ;; !(obct 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓))))
 
-;; jarr (90ms)
+;; jarr
 !(obct 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
 ;; ;; pm2.27
 ;; !(obct 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (140ms)
-;; !(test
-;;   (obct 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-;;   (MkSized 15 (: (mp (mp ax₂ (mp ax₁ (mp ax₂ (mp (mp ax₂ (mp ax₁ ax₂)) ax₁)))) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))))
+;; ;; imim1
+;; !(obct 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (0.891s)
+;; ;; loowoz
 ;; !(obct 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
-;; ;; pm2.83 (19m29.217s)
+;; ;; pm2.83
 ;; !(obct 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
-;; ;; loolin (16m16.625s)
-;; !(obct 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+;; ;; loolin
+;; !(obct 25 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
 
 ;; NEXT: determine depths
 
-;; ;; imim12 (?) (was 25 and supposedly worked)
+;; ;; imim12 (?)
 ;; !(obct 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
 
 ;; ;; peirceroll
