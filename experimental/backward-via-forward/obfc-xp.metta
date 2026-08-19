@@ -192,13 +192,13 @@
        ;; Recursive steps
        (if (and (< 0 $depth) (<= $hypcnt $depth))
            (progn
-            ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
+            (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
             (ofc-rec (- $depth 1) (- $hypcnt 1) $tgt (: $x $a)))
            (empty))
        ;; Base case
         (let (: $x $a) $tgt
              (progn
-              ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
+              (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
               (: $x $a)))))
 
 ;; Recursive steps (note that depth and hypcnt have already been
@@ -239,7 +239,9 @@
 
 ;; To enable trace (which is convenient to compare with the MORK
 ;; version), comment out (add-atom &ofc-sol ...)  in ofc.  Then
-;; display it with !(get-atoms &ofc-sol)
+;; display it with !(get-atoms &ofc-sol).  When collecting resulting
+;; times when indexing sol instances, results are tagged ws which
+;; stands for *with sol*.
 
 ;; ;; Exhausively generate all proofs of certain sizes
 ;; !(obfc 1 (: $x $a))
@@ -253,58 +255,37 @@
 ;; !(obfc 17 (: $x $a)) ; 1591750, 196.30s
 
 ;; ;; impid (Implied Identity)
-;; !(test
-;;   (obfc 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
-;;   (: (((mpⁱ I) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+;; !(obfc 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id
-;; !(test
-;;   (obfc 5 (: $x (→ 𝜑 𝜑)))
-;;   (: ((((mpⁱ (mpⁱ I)) ax₂) ax₁) ax₁) (→ 𝜑 𝜑)))
+;; ;; id (PeTTa-ws=0.103s)
+;; !(obfc 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43
-;; !(test
-;;   (obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
-;;   (: (((mpⁱ (((mpⁱ (mpⁱ I)) ax₂) ax₂)) ax₂) ax₁) (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;; ;; pm2.43 (PeTTa-ws=0.111s)
+;; !(obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; 2a1
-;; !(test
-;;   (obfc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
-;;   (: ((((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₁) ax₁) (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
+;; !(obfc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
 
-;; ;; imim2 (82ms)
-;; !(test
-;;   (obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
-;;   (: ((((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
+;; ;; imim2
+;; !(obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
 
-;; jarr (100ms)
-!(test
-  (collapse (obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
-  ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
-   (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ I)) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))))
+;; jarr (PeTTa-ws=1.695s, MeTTaScript-ws=3.660s)
+!(obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; ;; pm2.27
-;; !(test
-;;   (obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
-;;   (: (((((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁)) ax₂))) ax₂) ax₁) ax₁) ax₁) (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+;; ;; pm2.27 (PeTTa-ws=1.660s)
+;; !(obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (200ms)
-;; !(test
-;;   (obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-;;   (: (((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁)) ax₂))) ax₂)) ax₁) ax₂) ax₁) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+;; ;; imim1 (PeTTa-ws=12.045s, MeTTaScript-ws=22.920s)
+;; !(obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (1.823s)
-;; !(test
-;;   (collapse (obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
-;;   ((: ((((mpⁱ (((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂)) ax₁))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
-;;    (: (((mpⁱ ((((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁) ax₂))) ax₂))) ax₂)) ax₁) ax₂) ax₁)) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
-;;    (: ((((mpⁱ (((mpⁱ (mpⁱ (((mpⁱ ((mpⁱ (mpⁱ ((mpⁱ ((mpⁱ (mpⁱ I)) ax₂)) ax₁))) ax₂)) ax₁) ax₂))) ax₂) ax₂)) ax₁) ax₁) ax₁) (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))))
+;; ;; loowoz (PeTTa-ws=?)
+;; !(obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
 ;; ;; pm2.83 (37m40.783s)
 ;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
 ;; ;; loolin (32m17.697s)
-;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+;; !(obfc 25 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
 
 ;; NEXT: determine depths
 
@@ -316,3 +297,6 @@
 
 ;; ;; pm2.86
 ;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
+
+;; Output the solution space
+!(get-atoms &ofc-sol)
