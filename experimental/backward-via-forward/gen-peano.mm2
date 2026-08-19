@@ -1,6 +1,6 @@
 ;; Generate mapping between Peano and Integer up to a certain bound.
 
-;; Natural representing a bound (here 26)
+;; Natural representing a bound (here 36)
 (Bound (S
         (S
          (S
@@ -26,7 +26,17 @@
                              (S
                               (S
                                (S
-                                (S Z)))))))))))))))))))))))))))
+                                (S
+                                 (S
+                                  (S
+                                   (S
+                                    (S
+                                     (S
+                                      (S
+                                       (S
+                                        (S
+                                         (S
+                                          (S Z)))))))))))))))))))))))))))))))))))))
 
 ;; Base case of toPeano
 (toPeanoFn 0 Z)
