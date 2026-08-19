@@ -82,8 +82,8 @@
 ;; ;; pm2.43 (size=7, time=0.014s, time-up-to=0.014s)
 ;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
-;; ;; jarr (size=13, time=0.053s, time-up-to=0.055s)
-;; (target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; jarr (size=13, time=0.053s, time-up-to=0.055s)
+(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
 ;; ;; pm2.27 (size=13, time=0.047s, time-up-to=0.087s)
 ;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
