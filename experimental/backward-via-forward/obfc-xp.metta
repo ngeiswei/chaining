@@ -192,13 +192,13 @@
        ;; Recursive steps
        (if (and (< 0 $depth) (<= $hypcnt $depth))
            (progn
-            (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
+            ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
             (ofc-rec (- $depth 1) (- $hypcnt 1) $tgt (: $x $a)))
            (empty))
        ;; Base case
         (let (: $x $a) $tgt
              (progn
-              (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
+              ;; (add-atom &ofc-sol (sol $depth $hypcnt (: $x $a)))
               (: $x $a)))))
 
 ;; Recursive steps (note that depth and hypcnt have already been
@@ -257,10 +257,10 @@
 ;; ;; impid (Implied Identity)
 ;; !(obfc 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id (PeTTa-ws=0.103s)
+;; ;; id (PeTTa=0.105s, PeTTa-ws=0.103s)
 ;; !(obfc 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43 (PeTTa-ws=0.111s)
+;; ;; pm2.43 (PeTTa=0.107s, PeTTa-ws=0.111s)
 ;; !(obfc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; 2a1
@@ -269,22 +269,22 @@
 ;; ;; imim2
 ;; !(obfc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓)))))
 
-;; jarr (PeTTa-ws=1.695s, MeTTaScript-ws=3.660s)
+;; jarr (PeTTa=0.129s, PeTTa-ws=1.695s, MeTTaScript-ws=3.660s)
 !(obfc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; ;; pm2.27 (PeTTa-ws=1.660s)
+;; ;; pm2.27 (PeTTa=0.129s, PeTTa-ws=1.660s)
 ;; !(obfc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (PeTTa-ws=12.045s, MeTTaScript-ws=22.920s)
+;; ;; imim1 (PeTTa=0.267s, PeTTa-ws=12.045s, MeTTaScript-ws=22.920s)
 ;; !(obfc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (PeTTa-ws=?)
+;; ;; loowoz (PeTTa=9.230s, PeTTa-ws=?)
 ;; !(obfc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
-;; ;; pm2.83 (37m40.783s)
+;; ;; pm2.83 (PeTTa=59m13.337s)
 ;; !(obfc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
-;; ;; loolin (32m17.697s)
+;; ;; loolin (PeTTa=49m32.599s)
 ;; !(obfc 25 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
 
 ;; NEXT: determine depths
@@ -298,5 +298,5 @@
 ;; ;; pm2.86
 ;; !(obfc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ 𝜑 (→ 𝜓 𝜒)))))
 
-;; Output the solution space
-!(get-atoms &ofc-sol)
+;; ;; Output the solution space
+;; !(get-atoms &ofc-sol)
