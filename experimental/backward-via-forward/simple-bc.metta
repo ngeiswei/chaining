@@ -1,5 +1,9 @@
-;; Simple backward chainer for the sole purpose of creating graphical
-;; representations using MeTTaGrapher
+;; Simple backward chainer for creating graphical representations of
+;; chaining with MeTTaGrapher
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Define backward chainer ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Base cases
 (= (bc $_ (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
