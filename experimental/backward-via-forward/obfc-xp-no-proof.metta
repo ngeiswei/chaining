@@ -1,5 +1,9 @@
 ;; Backward via forward chaining ignoring proofs on the model of
 ;; [obfc-xp-no-proof.mm2](obfc-xp-no-proof.mm2).
+;;
+;; Note: it is apparently slower than
+;; [obc-xp-no-proof.metta](obc-xp-no-proof.metta) so it will not be
+;; taken into account in the benchmark.
 
 ;; Disable co-unification
 !(translatePredicate (set_prolog_flag occurs_check True))
@@ -22,26 +26,24 @@
 ;; 3. It uses Number instead of Nat.
 ;;
 ;; 4. It is specialized for propositional calculus.
-;; (: ofc (-> Number                    ; Maximum depth
-;;            Number                    ; Hypotheses count
-;;            $b                        ; Target query
-;;            $b                        ; Source query
-;;            $b))
 (= (ofc $depth $hypcnt $tgt $a)
    (if (< 0 $hypcnt)
        ;; Recursive steps
        (if (and (< 0 $depth) (<= $hypcnt $depth))
            (progn
             ;; (add-atom &ofc-sol (sol $depth $hypcnt $a))
-            (unique
+            ;; (unique
              (ofc-rec (- $depth 1) (- $hypcnt 1) $tgt $a))
-            )
+            ;; )
            (empty))
        ;; Base case
-        (let $a $tgt
-             (progn
-              ;; (add-atom &ofc-sol (sol $depth $hypcnt $a))
-              $a))))
+       $a))    ; TODO: for some reason the let below prevents PeTTa
+               ; from working properly, but I'm leaving this for
+               ; another time.
+        ;; (let $a $tgt
+        ;;      (progn
+        ;;       ;; (add-atom &ofc-sol (sol $depth $hypcnt $a))
+        ;;       $a))))
 
 ;; Recursive steps (note that depth and hypcnt have already been
 ;; decremented) Specialized application given abstraction
@@ -63,9 +65,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Backward via forward chaining
-(: (obfc (-> Number                     ; Maximum depth
-             $b                         ; Query
-             $b)))
 (= (obfc $depth $a)
    (ofc $depth 1 $a (-> $a $a)))
 
@@ -88,34 +87,28 @@
 ;; ;; impid (Implied Identity)
 ;; !(obfc 3 (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)))
 
-;; ;; id
+;; ;; id (PeTTa=0.108s, PeTTa-unique=0.122s)
 ;; !(obfc 5 (→ 𝜑 𝜑))
 
-;; ;; pm2.43
+;; ;; pm2.43 (PeTTa=0.108s, PeTTa-unique=0.115s)
 ;; !(obfc 7 (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)))
 
-;; ;; 2a1
-;; !(obfc 7 (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑))))
-
-;; ;; imim2
-;; !(obfc 7 (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓))))
-
-;; jarr
+;; jarr (PeTTa=0.123s, PeTTa-unique=0.142s)
 !(obfc 13 (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
 
-;; ;; pm2.27
+;; ;; pm2.27 (PeTTa=0.125s, PeTTa-unique=0.145s)
 ;; !(obfc 13 (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)))
 
-;; ;; imim1
+;; ;; imim1 (PeTTa=0.211s, PeTTa-unique=0.309s)
 ;; !(obfc 15 (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))
 
-;; ;; loowoz
+;; ;; loowoz (PeTTa=5.181s, PeTTa-unique=13.065s)
 ;; !(obfc 19 (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
 
-;; ;; pm2.83
+;; ;; pm2.83 (PeTTa=36m6.730s, PeTTa-unique=?)
 ;; !(obfc 25 (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))))
 
-;; ;; loolin
+;; ;; loolin (PeTTa=?, PeTTa-unique=?)
 ;; !(obfc 25 (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)))
 
 ;; ;; Output the solution space
