@@ -1,0 +1,235 @@
+;; Vanilla backward chainer for MORK, explicitly using backward
+;; recursion as opposed to forward chaining.  It is a direct port of
+;; obc from [bfc-xp.metta](bfc-xp.metta) and essentially following the
+;; idea of [pc-bc.mm2](../metamath/benchmark).
+;;
+;; WARNING: don't forget to run [gen-peano.mm2](gen-peano.mm2) and
+;; [gen-lte.mm2](gen-lte.mm2) prior to running that code.
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Knowledge Bases ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+;; Axiom base
+(ab (→ $𝜑 (→ $𝜓 $𝜑)))
+(ab (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒))))
+(ab (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑)))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Backward Chainer ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+;; Define obc, for optimized backward chainer, in terms of exec
+;; commands.  It represents intermediary solutions as follows
+;;
+;; (sol PATH PROOF_SIZE THEOREM)
+;;
+;; where
+;;
+;; - PATH: path of the lemma from the root of the target proof.  A
+;;   path indicates a branch of the proof tree, a sequence of search
+;;   nodes, where each search node can be either
+;;
+;;   - `.` corresponding to the root node
+;;
+;;   - `0` corresponding to the branch proving the first premise
+;;
+;;   - `1` corresponding to the branch proving the second premise.
+;;
+;;   So for instance
+;;
+;;   (sol . 7 (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)))
+;;
+;;   indicates a full proof of the target theorem.  While
+;;
+;;   (sol (. 0) 3 (→ (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜑)) (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+;;
+;;   indicates a proof of the first premise of the inference rule `mp`
+;;   at the root of the proof tree.
+;;
+;;   Likewise
+;;
+;;   (sol ((. 0) 1) 1 (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ (→ 𝜑 𝜑) (→ 𝜑 𝜓))))
+;;
+;;   indicates a proof of the lemma of the second premise of the first
+;;   premise of the root.
+;;
+;; - PROOF_SIZE: size of PROOF
+;;
+;; - THEOREM: theorem
+
+;; Base case (nullary).  The budget needs to be at least 1 for the
+;; axiom.
+(= (obc $budget $path $a)
+   (exec (0 $path obc_nullary)
+         (, (lte 1 $budget)
+            (ab $a))
+         (, (sol $path 1 $a))))
+
+;; Recursive step (product)
+;;
+;; WARNING: supports only binary product because obc is called on
+;; second premise instead of obc_prod.
+(= (obc_prod $budget $path (, $a $b))
+   (exec (1 $path obc_product_init)
+         (, ;; The budget needs to be at least 2, 1 for the first
+            ;; argument and 1 for second argument.  The product itself
+            ;; does not cost anything because it is a virtual
+            ;; intermediary proof step.
+            (lte 2 $budget)
+            ;; Calculate budget of first argument
+            (plusFn 1 $bx $budget)
+            ;; Grab bang evaluator for premise 1
+            (evaluate-bangs $evaluate-bangs-1))
+         (, ;; Recurse on first premise
+            (! (obc $bx ($path 0) $a))
+            ;; Evaluate all function calls prefixed by a bang
+            $evaluate-bangs-1
+            ;; Resume recursion
+            (exec (9 ($path 0) obc_product_2nd_arg)
+                  (, ;; Get solutions of recursion on first premise
+                     (sol ($path 0) $sx $a)
+                     ;; Calculate budget for premise 2
+                     (plusFn $sx $by $budget)
+                     ;; Grab bang evaluator for premise 2
+                     (evaluate-bangs $evaluate-bangs-2))
+                  ;; Recurse on second premise
+                  (, (! (obc $by ($path 1) $b))
+                     ;; Evaluate all function calls prefixed by a bang
+                     $evaluate-bangs-2
+                     ;; Resume recursion
+                     (exec (9 ($path 1) obc_product_final)
+                           (, ;; Retrieve proof existance of premises
+                              (sol ($path 0) $sx $a)
+                              (sol ($path 1) $sy $b)
+                              ;; Calculate product proof size
+                              (plusFn $sx $sy $sp))
+                           ;; Build product solution
+                           (, (sol_prod $path $sp (, $a $b)))))))))
+
+;; Recursive step (modus ponens)
+(= (obc $budget $path $b)
+   (exec (1 $path obc_mp_init)
+         (, ;; The budget needs to be at least 3, 1 for modus ponens,
+            ;; 2 for the two premises (the product)
+            (lte 3 $budget)
+            ;; Calculate budget for product
+            (plusFn 1 $bp $budget)
+            ;; Grab bang evaluator
+            (evaluate-bangs $evaluate-bangs))
+         (, ;; Recurse on product
+            (! (obc_prod $bp $path (, (→ $a $b) $a)))
+            ;; Evaluate all function calls prefixed by a bang
+            $evaluate-bangs
+            ;; Resume recursion
+            (exec (9 $path obc_mp_final)
+                  (, ;; Get solutions of product
+                     (sol_prod $path $sp (, (→ $a $b) $a))
+                     ;; Calculate size of modus ponens proof
+                     (plusFn $sp 1 $s))
+                  ;; Build mp solution
+                  (, (sol $path $s $b))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Function call evaluator ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Evaluate all function calls prefixed by a bang
+(evaluate-bangs (exec (5 * main)
+                      (, (! $fx) (= $fx $bdy))
+                      (O (- (! $fx)) (+ $bdy))))
+
+;;;;;;;;;;
+;; Main ;;
+;;;;;;;;;;
+
+;; Load Peano to Integer conversion.  Make sure that gen-peano.mm2 has
+;; been previously executed.
+(exec (0)
+      (I (ACT peano (toPeanoFn $x $k)))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
+
+;; Load lte
+(exec (1)
+      (I (ACT lte (lte $x $y))
+         (BTM (fromPeanoFn $x $xi))
+         (BTM (fromPeanoFn $y $yi)))
+      (, (lte $xi $yi)))
+
+;; Generate plusFn
+(exec (1)
+      (, (fromPeanoFn $k $x)
+         (fromPeanoFn $l $y))
+      (O (pure (plusFn $x $y $z)
+               $z
+               (i8_to_string (sum_i8 (i8_from_string $x) (i8_from_string $y))))))
+
+;; Turn target into obc call
+(exec (2)
+      (, (target $budget $a))
+      (, (! (obc $budget . $a))))
+
+;; Evaluate bangs
+(exec (3)
+      (, (evaluate-bangs $eb))
+      (, $eb))
+
+;; Unify solution with target when maximum budget and hypotheses count
+;; falls to zero.
+(exec (4 0 0 0)
+      (, (target $budget $ta)
+         (sol . $prfsize $ta))
+      (, (final . $prfsize $ta)))
+
+;; Remove extraneous binary relations
+(exec (5 0 0 0)
+      (,)
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove lte)))
+(exec (5 0 0 1)
+      (, (binRelToRemove $r)
+         ($r $x $y))
+      (O (- (binRelToRemove $r))
+         (- ($r $x $y))))
+
+;; Remove extraneous trinary relations
+(exec (5 0 0 2)
+      (,)
+      (, (triRelToRemove sol_prod)
+         (triRelToRemove plusFn)))
+(exec (5 0 0 3)
+      (, (triRelToRemove $r)
+         ($r $x $y $z))
+      (O (- (triRelToRemove $r))
+         (- ($r $x $y $z))))
+
+;; Uncomment the target(s) you wish to proof
+
+;; ;; impid (Implied Identity) (size=3, time=0.028s)
+;; (target 3 (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑)))
+
+;; ;; id (size=5, time=0.029s, time-up-to=0.031s)
+;; (target 5 (→ 𝜑 𝜑))
+
+;; ;; pm2.43 (size=7, time=0.040s, time-up-to=0.046s)
+;; (target 7 (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓)))
+
+;; jarr (size=13, time=?, time-up-to=?)
+(target 13 (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒)))
+
+;; ;; pm2.27 (size=13, time=?, time-up-to=?)
+;; (target 13 (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓)))
+
+;; ;; imim1 (size=15, time=?, time-up-to=?)
+;; (target 15 (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))
+
+;; ;; loowoz (size=19, time=?, time-up-to=?)
+;; (target 19 (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒))))
+
+;; ;; pm2.83 (size=25, time=?, time-up-to=?)
+;; (target 25 (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃)))))
+
+;; ;; loolin (size=25, time=?, time-up-to=?)
+;; (target 25 (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑)))
