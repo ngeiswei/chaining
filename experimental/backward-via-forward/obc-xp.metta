@@ -68,42 +68,40 @@
 ;; ;; impid (Implied Identity)
 ;; !(obc 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
 
-;; ;; id
+;; ;; id (PeTTa=0.99s, MeTTaScript=0.184s, CeTTa=0.011s)
 ;; !(obc 5 (: $x (→ 𝜑 𝜑)))
 
-;; ;; pm2.43
+;; ;; pm2.43 (PeTTa=0.100s, MeTTaScript=0.181s, CeTTa=0.016s)
 ;; !(obc 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
 
 ;; ;; 2a1
 ;; !(obc 7 (: $x (→ 𝜑 (→ 𝜓 (→ 𝜒 𝜑)))))
 
-;; ;; imim2 (81ms)
+;; ;; imim2
 ;; !(obc 7 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜑) (→ 𝜒 𝜓))))
 
-;; jarr (90ms)
-!(obc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+;; ;; jarr (PeTTa=0.129s, MeTTaScript=0.209s, CeTTa=1.067s)
+;; !(obc 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
 
-;; ;; pm2.27
+;; ;; pm2.27 (PeTTa=0.112s, MeTTaScript=0.212s, CeTTa=1.053s)
 ;; !(obc 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
 
-;; ;; imim1 (140ms)
-;; !(test
-;;   (obc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
-;;   (MkSized 15 (: (mp (mp ax₂ (mp ax₁ (mp ax₂ (mp (mp ax₂ (mp ax₁ ax₂)) ax₁)))) ax₁) (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒))))))
+;; ;; imim1 (PeTTa=0.199s, MeTTaScript=0.259s, CeTTa=7.227s)
+;; !(obc 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
 
-;; ;; loowoz (3.309s)
+;; ;; loowoz (PeTTa=5.193s, MeTTaScript=2.186s, CeTTa=6m55.993s)
 ;; !(obc 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
 
-;; ;; pm2.83 (19m29.217s)
+;; ;; pm2.83 (PeTTa=40m1.358s, MeTTaScript=19m25.469s)
 ;; !(obc 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
 
-;; ;; loolin (16m16.625s)
-;; !(obc 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+;; ;; loolin (PeTTa=33m9.455s, MeTTaScript=16m51.292s)
+;; !(obc 25 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
 
 ;; NEXT: determine depths
 
-;; ;; imim12 (?) (was 25 and supposedly worked)
-;; !(obc 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
+;; imim12
+!(obc 31 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜒 𝜃) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜃))))))
 
 ;; ;; peirceroll
 ;; !(obc 32 (: $x (→ (→ (→ (→ 𝜑 𝜓) 𝜑) 𝜑) (→ (→ (→ 𝜑 𝜓) 𝜒) (→ (→ 𝜒 𝜑) 𝜑)))))
