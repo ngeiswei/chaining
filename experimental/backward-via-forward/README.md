@@ -91,10 +91,11 @@ nothing else.  Once this has been establish we will move to a MORK
 implementation, but for now we remain inside MeTTa using PeTTa as
 back-end.
 
-The code can be found in [bfc-xp.metta](bfc-xp.metta).  The main two
-chainer implementations being compared are `obfc` which stands for
-Optimized Backward via Forward Chainer, and `obc` which stands for
-Optimized Backward Chainer.  Benchmarks of two types are conducted:
+The code can be found in [obfc-xp.metta](obfc-xp.metta) and
+[obc-xp.metta](obc-xp.metta).  The main two chainer implementations
+being compared are `obfc` which stands for Optimized Backward via
+Forward Chainer, and `obc` which stands for Optimized Backward
+Chainer.  Benchmarks of two types are conducted:
 
 1. Over four exhaustive enumerations (all theorems and their proofs up
    to a certain size) of proof sizes, 11, 13, 15 and 17 respectively.
@@ -130,10 +131,10 @@ especially for rewriting systems like MORK, which we will study next.
 ### Comparing MORK Backward Emulation vs Regular MeTTa Backward Chaining
 
 For comparing regular MeTTa backward chaining with MORK forward
-chaining emulation, see [bfc-xp.mm2](bfc-xp.mm2).  Do not forget to
-run [gen-fromNumber.mm2](gen-fromNumber.mm2) and
-[gen-lte.mm2](gen-lte.mm2) in this order, to generate tables used by
-[bfc-xp.mm2](bfc-xp.mm2).
+chaining emulation, see [obfc-xp.mm2](obfc-xp.mm2).  Do not forget to
+run [gen-peano.mm2](gen-peano.mm2) and [gen-lte.mm2](gen-lte.mm2) in
+that order, to generate tables used by [obfc-xp.mm2](obfc-xp.mm2) and
+[obc-xp.mm2](obc-xp.mm2).
 
 So far the results are disappointing.  On jarr, the backward chaining
 emulation via forward chaining on MM2 is 290x slower than direct
@@ -142,3 +143,26 @@ have tried a few things like simplifying arthimetic operations and
 swapping arguments to speed up the MM2 implementation, but it is still
 too slow.  Maybe I could try to replace arthimetic tables by pure
 functions but I doubt it will make a substantial difference.
+
+#### Faster variant: `obfc-xp-fast.mm2`
+
+A structural rewrite of [obfc-xp.mm2](obfc-xp.mm2) is available as
+[obfc-xp-fast.mm2](obfc-xp-fast.mm2).  It runs roughly **2× faster**
+than [obfc-xp.mm2](obfc-xp.mm2).
+
+The key changes from `obfc-xp.mm2` to `obfc-xp-fast.mm2` are:
+
+1. **No `pure` sink in axiom/mpⁱ application.**.
+
+2. **Single-conjunct axiom application exec.**.
+
+3. **Plain integers for the budget countdown.**  Peano
+   `(S (S ... Z))` structures and `toPeanoFn`/`fromPeanoFn`
+   conversions are replaced by a direct integer representation and
+   a precomputed `(dec N N-1)` / `(inc N N+1)` table.
+
+## Publications
+
+- **Using Forward Chaining to Go Backward**, *Nil Geisweiller*, AITP 2026
+  - [Paper](https://github.com/ngeiswei/papers/blob/master/2026/BackwardViaForward/BackwardViaForward.pdf)
+  - [Presentation](https://github.com/ngeiswei/presentations/blob/master/2026/BackwardViaForward/BackwardViaForward.pdf)

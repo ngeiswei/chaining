@@ -1,0 +1,141 @@
+;; NEXT: revert c: to : if it is not slower
+
+;; obfc-xp-fast.mm2 — Faster variant of obfc-xp.mm2
+;;
+;; Warning: make sure that [gen-peano.mm2](gen-peano.mm2) and
+;; [gen-lte.mm2](gen-lte.mm2) and have been previously executed.
+;;
+;; This is a structural rewrite of obfc-xp.mm2 inspired by the
+;; bfc() benchmark in MORK's kernel/src/main.rs.  It produces
+;; the same final results but runs roughly 2.5x faster:
+;;
+;;   problem    obfc-xp.mm2    obfc-xp-fast.mm2
+;;   jarr (13)  ~0.34s         ~0.13s
+;;   imim1 (15) ~2.1s          ~0.85s
+;;   loowoz (19) ~89s           ~40s
+;;
+;; The key changes from obfc-xp.mm2:
+;;
+;; 1. Plain integers for the budget countdown instead of Peano.
+;;    The outer exec takes the integer MPS directly; the inner exec
+;;    is respawned with a decremented integer via a precomputed
+;;    (dec N N-1) / (inc N N+1) table.
+;;
+;; 2. Hypothesis count is derived implicitly from the budget via
+;;    (gte $ki $hi) / (inc $hi $shi) lookup tables, rather than
+;;    stored in the sol tuple and gated by a flag precomputed via
+;;    =pure.  This eliminates the pure sink invocations that
+;;    dominated the per-sol cost in the original.
+;;
+;; 3. The sol tuple is now (sol MPS HYPCNT (c: THM PRF)) — 3 fields
+;;    instead of 5 (no FLAG).
+;;
+;; 4. The (axiom $r $ap) lives in the inner exec's LHS rather than the
+;;    axiom application exec's LHS, so the inner exec fires 3 times
+;;    per budget level (once per axiom) but the per-firing template
+;;    instantiation is much cheaper.
+;;
+;; 5. The axiom application exec has a single conjunct in its LHS
+;;    (just the sol match) — no decFn, no axiom variable, no flag.
+;;
+;; 6. The mpⁱ application exec similarly has just (sol) and (incFn) in
+;;    its LHS — no FLAG constant matching.
+;;
+;; To switch the active target, uncomment the desired line in the
+;; "Define target query" section below.
+
+;; Load Peano to Integer conversion.
+(exec (0)
+      (I (ACT peano (toPeanoFn $x $k)))
+      (, (toPeanoFn $x $k)
+         (fromPeanoFn $k $x)))
+
+;; Precompute increment and decrement tables for integer.
+(exec (1)
+      (, (fromPeanoFn $x $y)
+         (fromPeanoFn (S $x) $sy))
+      (, (incFn $y $sy)
+         (decFn $sy $y)))
+
+;; Load lte and produce gte.
+(exec (1)
+      (I (ACT lte (lte $x $y))
+         (BTM (fromPeanoFn $x $xi))
+         (BTM (fromPeanoFn $y $yi)))
+      (, (gte $yi $xi)))
+
+;; Theorem/proof axioms (all `→`)
+(axiom (: ax₁ (→ $𝜑 (→ $𝜓 $𝜑))))
+(axiom (: ax₂ (→ (→ $𝜑 (→ $𝜓 $𝜒)) (→ (→ $𝜑 $𝜓) (→ $𝜑 $𝜒)))))
+(axiom (: ax₃ (→ (→ (¬ $𝜑) (¬ $𝜓)) (→ $𝜓 $𝜑))))
+
+;; Define target query, of the form
+;;
+;; (target MAX_PROOF_SIZE QUERY)
+
+;; ;; impid (Implied Identity) (size=3, time=0.013s)
+;; (target 3 (: $x (→ (→ 𝜑 𝜓) (→ 𝜑 𝜑))))
+
+;; ;; id (size=5, time=0.012s, time-up-to=0.013s)
+;; (target 5 (: $x (→ 𝜑 𝜑)))
+
+;; ;; pm2.43 (size=7, time=0.014s, time-up-to=0.014s)
+;; (target 7 (: $x (→ (→ 𝜑 (→ 𝜑 𝜓)) (→ 𝜑 𝜓))))
+
+;; jarr (size=13, time=0.053s, time-up-to=0.055s)
+(target 13 (: $x (→ (→ (→ 𝜑 𝜓) 𝜒) (→ 𝜓 𝜒))))
+
+;; ;; pm2.27 (size=13, time=0.047s, time-up-to=0.087s)
+;; (target 13 (: $x (→ 𝜑 (→ (→ 𝜑 𝜓) 𝜓))))
+
+;; ;; imim1 (size=15, time=0.231s, time-up-to=0.345s)
+;; (target 15 (: $x (→ (→ 𝜑 𝜓) (→ (→ 𝜓 𝜒) (→ 𝜑 𝜒)))))
+
+;; ;; loowoz (size=19, time=9.599s, time-up-to=9.899s)
+;; (target 19 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜑 𝜒)) (→ (→ 𝜓 𝜑) (→ 𝜓 𝜒)))))
+
+;; ;; pm2.83 (size=25, time=?, time-up-to=?)
+;; (target 25 (: $x (→ (→ 𝜑 (→ 𝜓 𝜒)) (→ (→ 𝜑 (→ 𝜒 𝜃)) (→ 𝜑 (→ 𝜓 𝜃))))))
+
+;; ;; loolin (size=26, time=?, time-up-to=?)
+;; (target 26 (: $x (→ (→ (→ 𝜑 𝜓) (→ 𝜓 𝜑)) (→ 𝜓 𝜑))))
+
+;; Outer init
+(exec (2)
+      (, (target $mps (: $tx $ta)))
+      (, (sol $mps 1 (c: (-> $ta $ta) I))
+         (exec (2 $mps)
+               (, (exec (2 $ski) $ptrn $tplt)
+                  (decFn $ski $ki)
+                  (gte $ki $hi)
+                  (incFn $hi $shi))
+               (, (exec (3 0)
+                        (, (axiom (: $r $ap))
+                           (sol $ski $shi (c: (-> $ap $b) $f)))
+                        (, (sol $ki $hi (c: $b ($f $r)))))
+                  (exec (4 0)
+                        (, (sol $ski $hi (c: (-> $b $c) $f)))
+                        (, (sol $ki $shi (c: (-> (→ $a $b) (-> $a $c)) (mpⁱ $f)))))
+                  (exec (7 0)
+                        (,)
+                        (, (exec (2 $ki) $ptrn $tplt)))))))
+
+;; Termination
+(exec (3 0 0)
+ (, (target $mps (: $tx $ta))
+    (sol 0 0 (c: $ta $tx)))
+ (, (final 0 0 (: $tx $ta))))
+
+;; Remove binary relations
+(exec (5 0 0)
+      (,)
+      (, (binRelToRemove toPeanoFn)
+         (binRelToRemove fromPeanoFn)
+         (binRelToRemove incFn)
+         (binRelToRemove decFn)
+         (binRelToRemove gte)))
+(exec (5 0 1)
+      (, (binRelToRemove $r)
+         ($r $x $y))
+      (O (- (binRelToRemove $r))
+         (- ($r $x $y))))
