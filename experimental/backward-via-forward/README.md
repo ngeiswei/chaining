@@ -160,3 +160,9 @@ The key changes from `obfc-xp.mm2` to `obfc-xp-fast.mm2` are:
    `(S (S ... Z))` structures and `toPeanoFn`/`fromPeanoFn`
    conversions are replaced by a direct integer representation and
    a precomputed `(dec N N-1)` / `(inc N N+1)` table.
+
+## Publications
+
+- **Using Forward Chaining to Go Backward**, *Nil Geisweiller*, AITP 2026
+  - [Paper](https://github.com/ngeiswei/papers/blob/master/2026/BackwardViaForward/BackwardViaForward.pdf)
+  - [Presentation](https://github.com/ngeiswei/presentations/blob/master/2026/BackwardViaForward/BackwardViaForward.pdf)
