@@ -310,6 +310,102 @@
        (empty)))
    ;; )
 
+;; Exclusive disjunction evaluation to ⊤ from right.  The query
+;;
+;; (≗ (⊻ $f $g) $x ⊤)
+;;
+;; means that ((⊻ $f $g) $x) evaluates to ⊤ and requires as premises
+;; that ($f $x) evaluates to ⊥ and ($g $x) evaluates to ⊤.
+;;
+;; `eetr` stands for exclusive evaluates to top from right.
+;;
+;; Additionally, Algebraic Normal Form checking is taking place "for
+;; free", meaning that it is not accounted into the budget.
+(= (bc $ab $rb (MkBudget $size $depth) (: (eetr $fprf $gprf) (≗ (⊻ $f $g) $x ⊤)))
+   (if (and (<= 3 $size) (<= 2 $depth))
+       ;; Enough budget
+       (let* (;; Recurse on premise 1 to make sure that $f evaluates
+              ;; to false on $x.
+              ((, (MkBudget $fsize $fdepth) (: $fprf (≗ $f $x ⊥)))
+               (bc $ab $rb (MkBudget (- $size 2) $depth) (: $fprf (≗ $f $x ⊥))))
+              ;; Make sure $f is in first level algebraic normal form
+              (True (isFstLevelInductiveANF $f))
+              ;; Recurse on premise 2 to make sure that $g evaluates
+              ;; to true on $x
+              ((, (MkBudget $gsize $gdepth) (: $gprf (≗ $g $x ⊤)))
+               (bc $ab $rb (MkBudget (+ $fsize 1) (- $depth 1))
+                   (: $gprf (≗ $g $x ⊤))))
+              ;; Make sure that (⊻ $f $g) is in algebraic normal form,
+              (True (isInductiveANF (⊻ $f $g))))
+         ;; Build conclusion
+         (, (MkBudget $gsize $gdepth) (: (eetr $fprf $gprf) (≗ (⊻ $f $g) $x ⊤))))
+       ;; Not enough budget
+       (empty)))
+
+;; Exclusive disjunction evaluation to ⊥ from top.  The query
+;;
+;; (≗ (⊻ $f $g) $x ⊥)
+;;
+;; means that ((⊻ $f $g) $x) evaluates to ⊥ and requires as premises
+;; that both ($f $x) and ($g $x) evaluate to ⊤.
+;;
+;; `eebt` stands for exclusive evaluates to bottom from top.
+;;
+;; Additionally, Algebraic Normal Form checking is taking place "for
+;; free", meaning that it is not accounted into the budget.
+(= (bc $ab $rb (MkBudget $size $depth) (: (eebt $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
+   (if (and (<= 3 $size) (<= 2 $depth))
+       ;; Enough budget
+       (let* (;; Recurse on premise 1 to make sure that $f evaluates
+              ;; to true on $x.
+              ((, (MkBudget $fsize $fdepth) (: $fprf (≗ $f $x ⊤)))
+               (bc $ab $rb (MkBudget (- $size 2) $depth) (: $fprf (≗ $f $x ⊤))))
+              ;; Make sure $f is in first level algebraic normal form
+              (True (isFstLevelInductiveANF $f))
+              ;; Recurse on premise 2 to make sure that $g evaluates
+              ;; to true on $x
+              ((, (MkBudget $gsize $gdepth) (: $gprf (≗ $g $x ⊤)))
+               (bc $ab $rb (MkBudget (+ $fsize 1) (- $depth 1))
+                   (: $gprf (≗ $g $x ⊤))))
+              ;; Make sure that (⊻ $f $g) is in algebraic normal form,
+              (True (isInductiveANF (⊻ $f $g))))
+         ;; Build conclusion
+         (, (MkBudget $gsize $gdepth) (: (eebt $fprf $gprf) (≗ (⊻ $f $g) $x ⊥))))
+       ;; Not enough budget
+       (empty)))
+
+;; Exclusive disjunction evaluation to ⊥ from bottom.  The query
+;;
+;; (≗ (⊻ $f $g) $x ⊥)
+;;
+;; means that ((⊻ $f $g) $x) evaluates to ⊥ and requires as premises
+;; that both ($f $x) and ($g $x) evaluate to ⊥.
+;;
+;; `eebb` stands for exclusive evaluates to bottom from bottom.
+;;
+;; Additionally, Algebraic Normal Form checking is taking place "for
+;; free", meaning that it is not accounted into the budget.
+(= (bc $ab $rb (MkBudget $size $depth) (: (eebb $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
+   (if (and (<= 3 $size) (<= 2 $depth))
+       ;; Enough budget
+       (let* (;; Recurse on premise 1 to make sure that $f evaluates
+              ;; to false on $x.
+              ((, (MkBudget $fsize $fdepth) (: $fprf (≗ $f $x ⊥)))
+               (bc $ab $rb (MkBudget (- $size 2) $depth) (: $fprf (≗ $f $x ⊥))))
+              ;; Make sure $f is in first level algebraic normal form
+              (True (isFstLevelInductiveANF $f))
+              ;; Recurse on premise 2 to make sure that $g evaluates
+              ;; to false on $x
+              ((, (MkBudget $gsize $gdepth) (: $gprf (≗ $g $x ⊥)))
+               (bc $ab $rb (MkBudget (+ $fsize 1) (- $depth 1))
+                   (: $gprf (≗ $g $x ⊥))))
+              ;; Make sure that (⊻ $f $g) is in algebraic normal form,
+              (True (isInductiveANF (⊻ $f $g))))
+         ;; Build conclusion
+         (, (MkBudget $gsize $gdepth) (: (eebb $fprf $gprf) (≗ (⊻ $f $g) $x ⊥))))
+       ;; Not enough budget
+       (empty)))
+
 ;; Product.  In the query
 ;;
 ;; (: (, $x $y) (, $a $b))

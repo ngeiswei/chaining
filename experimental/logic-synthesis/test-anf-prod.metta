@@ -76,9 +76,9 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;
-;; Constant synthesis ;;
-;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Nullary synthesis ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Define empty axiom and rule base
 !(bind! &ab0 (new-space))
@@ -131,12 +131,23 @@
   (sort-atom (collapse (bc &ab1 &rb1 (MkBudget 3 2) (: $prf (≗ $pred 0 ⊤)))))
   (sort-atom
    ((, (MkBudget 2 1) (: tet (≗ 𝕋 0 ⊤)))
-    (, (MkBudget 0 0) (: (eetl f₀ tet) (≗ (⊻ f 𝕋) 0 ⊤))))))
-;; !(test
-;;   (bc &ab1 &rb1 (MkBudget 1 1) (: $prf (≗ $pred 1 ⊥)))
-;;   (, (MkBudget 0 0) (: f₁ (≗ (⊻ f 𝕋) 1 ⊥))))
+    (, (MkBudget 0 0) (: (eetr f₀ tet) (≗ (⊻ f 𝕋) 0 ⊤))))))
+!(test
+  (sort-atom (collapse (bc &ab1 &rb1 (MkBudget 3 2) (: $prf (≗ $pred 1 ⊥)))))
+  (sort-atom
+   ((, (MkBudget 2 1) (: feb (≗ 𝔽 1 ⊥)))
+    (, (MkBudget 0 0) (: (eebt f₁ tet) (≗ (⊻ f 𝕋) 1 ⊥))))))
 
-;; ;; ;; ;; Test unary synthesis of (¬ f) given two data points
-;; ;; ;; !(test
-;; ;; ;;   (bc &ab1 &rb1 (MkBudget 3 2) (: $prf (, (≗ $pred 0 ⊤)
-;; ;; ;;                                           (≗ $pred 1 ⊥))))
+;; Test unary synthesis of (¬ f) given two data points
+!(test
+  (bc &ab1 &rb1 (MkBudget 7 3) (: $prf (, (≗ $pred 0 ⊤)
+                                          (≗ $pred 1 ⊥))))
+  (, (MkBudget 0 0)
+     (: (, (eetr f₀ tet) (eebt f₁ tet))
+        (, (≗ (⊻ f 𝕋) 0 ⊤) (≗ (⊻ f 𝕋) 1 ⊥)))))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Binary synthesis ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+;; NEXT
