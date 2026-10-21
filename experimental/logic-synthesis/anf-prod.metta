@@ -6,11 +6,29 @@
 ;; Disable co-unification
 !(translatePredicate (set_prolog_flag occurs_check True))
 
+;; Load the Prolog library and register @<? as a MeTTa function.
+!(translatePredicate (consult "./lib_possibly_lt.pl"))
+!(import_prolog_function @<?)
+
 ;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;; ;;
 ;; ;; Syntax ;; ;;
 ;; ;;;;;;;;;;;; ;;
 ;;;;;;;;;;;;;;;;;;
+
+;; Return True iff $term is closed, that does not contain free
+;; variable.
+(: isClosed (-> Atom Bool))
+(= (isClosed $term)
+   (case (get-metatype $term)
+     ((Variable False)
+      (Symbol True)
+      (Grounded True)
+      (Expression (if (== $term ())
+                      True
+                      (let* (($head (car-atom $term))
+                             ($tail (cdr-atom $term)))
+                        (and (isClosed $head) (isClosed $tail))))))))
 
 ;; Get first argument of (f x1 ... xn)
 (= (getFstArg ($f $x)) $x)
@@ -53,26 +71,28 @@
    (or (isFalsePredicate $x) (isTruePredicate $x)))
 
 ;; Check if $x is a contingent atomic predicate (different than 𝔽/𝕋).
-;; Note that unlike isInductiveANF it does not recognize variable as
-;; potentially contingent atomic predicate.
+;; If $x is a variable then check if it could potentially be a
+;; contingent atomic predicate.
 (= (isContingentAtomicPredicate $x)
    (case (get-metatype $x)
      ((Symbol (not (isConstantPredicate $x)))
       (Grounded (not (isConstantPredicate $x)))
-      (Variable False)
+      (Variable True)
       (Expression False))))
 
 ;; Check if $term, assumed to be a conjunction of subterms in
-;; algebraic normal form, is in algebraic normal form.
+;; algebraic normal form, is in algebraic normal form.  If (∧ $x $y)
+;; is open (i.e. contain free variables) then check if it could
+;; potentially be in ANF.
 (= (isConjunctionInductiveANF (∧ $x $y))
    (and
     ;; Make sure that $x is well formed (left associative)
     (isContingentAtomicPredicate $x)
     ;; Make sure that the rest is well formed
     (if (isConjunction $y)
-        (@< $x (getFstArg $y))
+        (@<? $x (getFstArg $y))
         (and (isContingentAtomicPredicate $y)
-             (@< $x $y)))))
+             (@<? $x $y)))))
 
 ;; Check if $term, assumed to be an exclusive disjunction of subterms
 ;; in ANF, is in algebraic normal form.

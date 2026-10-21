@@ -3,16 +3,52 @@
 ;; Load the code under test
 !(import! &self ./anf-prod.metta)
 
+;; Import memoization library
+!(import! &self (library lib_memo))
+
+;; ;; Enable memoization for bc
+;; !(memoize bc)
+;; !(config-memoize (unique-limit 10000) (strategy wtinylfu) (size-limit 5))
+
 ;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;; ;;
 ;; ;; Syntax ;; ;;
 ;; ;;;;;;;;;;;; ;;
 ;;;;;;;;;;;;;;;;;;
 
+;; Test isConjunctionInductiveANF
+!(test
+  (isConjunctionInductiveANF (∧ f g))
+  True)
+!(test
+  (isConjunctionInductiveANF (∧ $f g))
+  True)
+!(test
+  (isConjunctionInductiveANF (∧ f $g))
+  True)
+!(test
+  (isConjunctionInductiveANF (∧ $f 𝔽))
+  False)
+!(test
+  (isConjunctionInductiveANF (∧ $f 𝕋))
+  False)
+
 ;; Test isInductiveANF
 !(test
   (isInductiveANF (∧ f g))
   True)
+!(test
+  (isInductiveANF (∧ f $g))
+  True)
+!(test
+  (isInductiveANF (∧ $f g))
+  True)
+!(test
+  (isInductiveANF (∧ $f 𝔽))
+  False)
+!(test
+  (isInductiveANF (∧ $f 𝕋))
+  False)
 
 ;; Test isANF
 !(test
@@ -112,7 +148,6 @@
   (sort-atom
    ((, (MkBudget 0 0) (: f₀ (≗ f 0 ⊥)))
     (, (MkBudget 0 0) (: feb (≗ 𝔽 0 ⊥))))))
-
 !(test
   (sort-atom (collapse (bc &ab1 &rb1 (MkBudget 1 1) (: $prf (≗ $pred 1 ⊤)))))
   (sort-atom
