@@ -3,12 +3,15 @@
 ;; Load the code under test
 !(import! &self ./anf-prod.metta)
 
-;; Import memoization library
-!(import! &self (library lib_memo))
-
+;; ;; Import memoization library (2x slower)
+;; !(import! &self (library lib_memo))
 ;; ;; Enable memoization for bc
 ;; !(memoize bc)
 ;; !(config-memoize (unique-limit 10000) (strategy wtinylfu) (size-limit 5))
+
+;; Import tabling library (2x faster)
+!(import! &self (library lib_tabling))
+!(tabled (bc $ab $rb $budget $query))
 
 ;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;; ;;
