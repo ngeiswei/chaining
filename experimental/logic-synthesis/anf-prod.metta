@@ -212,47 +212,55 @@
 ;;
 ;; tet stands for true evaluates to top.
 (= (bc $ab $rb (MkBudget $size $depth) (: tet (≗ 𝕋 $x ⊤)))
-   (, (MkBudget (- $size 1) (- $depth 1)) (: tet (≗ 𝕋 $x ⊤))))
+   ;; (trace! (👁 bc [𝕋] $ab $rb (MkBudget $size $depth) (: tet (≗ 𝕋 $x ⊤)))
+   (if (and (<= 1 $size) (<= 1 $depth))
+       (, (MkBudget (- $size 1) (- $depth 1)) (: tet (≗ 𝕋 $x ⊤)))
+       (empty)))
+   ;; )
 
 ;; 𝔽 evaluates to ⊥
 ;;
 ;; feb stands for false evaluates to bottom.
 (= (bc $ab $rb (MkBudget $size $depth) (: feb (≗ 𝔽 $x ⊥)))
-   (, (MkBudget (- $size 1) (- $depth 1)) (: feb (≗ 𝔽 $x ⊥))))
+   ;; (trace! (👁 bc [𝔽] $ab $rb (MkBudget $size $depth) (: feb (≗ 𝔽 $x ⊥)))
+   (if (and (<= 1 $size) (<= 1 $depth))
+       (, (MkBudget (- $size 1) (- $depth 1)) (: feb (≗ 𝔽 $x ⊥)))
+       (empty)))
+   ;; )
 
 ;; Generic recursive steps
 
-;; Unary rule application
-(= (bc $ab $rb (MkBudget $size $depth) (: ($f $x) $b))
-   (if (and (<= 2 $size) (<= 2 $depth))
-       ;; Enough budget
-       (let* (;; Look for $f within the rule base
-              ((: $f (-> $a $b)) (match $rb (: $f (-> $a $b)) (: $f (-> $a $b))))
-              ;; Recursive call on $x
-              ((, (MkBudget $xsize $xdepth) (: $x $a))
-               (bc $ab $rb (MkBudget (- $size 1) (- $depth 1)) (: $x $a))))
-         ;; Output remaining budget with answer
-         (, (MkBudget $xsize $xdepth) (: ($f $x) $b)))
-       ;; Not enough budget
-       (empty)))
+;; ;; Unary rule application
+;; (= (bc $ab $rb (MkBudget $size $depth) (: ($f $x) $b))
+;;    (if (and (<= 2 $size) (<= 2 $depth))
+;;        ;; Enough budget
+;;        (let* (;; Look for $f within the rule base
+;;               ((: $f (-> $a $b)) (match $rb (: $f (-> $a $b)) (: $f (-> $a $b))))
+;;               ;; Recursive call on $x
+;;               ((, (MkBudget $xsize $xdepth) (: $x $a))
+;;                (bc $ab $rb (MkBudget (- $size 1) (- $depth 1)) (: $x $a))))
+;;          ;; Output remaining budget with answer
+;;          (, (MkBudget $xsize $xdepth) (: ($f $x) $b)))
+;;        ;; Not enough budget
+;;        (empty)))
 
-;; Unary rule application
-(= (bc $ab $rb (MkBudget $size $depth) (: ($f $x1 $x2) $b))
-   (if (and (<= 3 $size) (<= 2 $depth))
-       ;; Enough budget
-       (let* (;; Look for $f within the rule base
-              ((: $f (-> $a1 $a2 $b))
-               (match $rb (: $f (-> $a1 $a2 $b)) (: $f (-> $a1 $a2 $b))))
-              ;; Recursive call on $x1
-              ((, (MkBudget $x1size $x1depth) (: $x1 $a1))
-               (bc $ab $rb (MkBudget (- $size 2) (- $depth 1)) (: $x1 $a1)))
-              ;; Recursive call on $x2
-              ((, (MkBudget $x2size $x2depth) (: $x2 $a2))
-               (bc $ab $rb (MkBudget (+ $x1size 1) (- $depth 1)) (: $x2 $a2))))
-         ;; Output remaining budget with answer
-         (, (MkBudget $x2size (min $x1depth $x1depth)) (: ($f $x1 $x2) $b)))
-       ;; Not enough budget
-       (empty)))
+;; ;; Unary rule application
+;; (= (bc $ab $rb (MkBudget $size $depth) (: ($f $x1 $x2) $b))
+;;    (if (and (<= 3 $size) (<= 2 $depth))
+;;        ;; Enough budget
+;;        (let* (;; Look for $f within the rule base
+;;               ((: $f (-> $a1 $a2 $b))
+;;                (match $rb (: $f (-> $a1 $a2 $b)) (: $f (-> $a1 $a2 $b))))
+;;               ;; Recursive call on $x1
+;;               ((, (MkBudget $x1size $x1depth) (: $x1 $a1))
+;;                (bc $ab $rb (MkBudget (- $size 2) (- $depth 1)) (: $x1 $a1)))
+;;               ;; Recursive call on $x2
+;;               ((, (MkBudget $x2size $x2depth) (: $x2 $a2))
+;;                (bc $ab $rb (MkBudget (+ $x1size 1) (- $depth 1)) (: $x2 $a2))))
+;;          ;; Output remaining budget with answer
+;;          (, (MkBudget $x2size (min $x1depth $x1depth)) (: ($f $x1 $x2) $b)))
+;;        ;; Not enough budget
+;;        (empty)))
 
 ;; Specialized recursive steps
 
