@@ -199,12 +199,12 @@
 
 ;; Generic base case
 (= (bc $ab $rb (MkBudget $size $depth) (: $x $a))
-   (trace! (👁 bc [base] $ab $rb (MkBudget $size $depth) (: $x $a))
+   ;; (trace! (👁 bc [base] $ab $rb (MkBudget $size $depth) (: $x $a))
    (if (and (<= 1 $size) (<= 1 $depth))
        ;; Look for $x within the axiom base
        (match $ab (: $x $a) (, (MkBudget (- $size 1) (- $depth 1)) (: $x $a)))
        (empty)))
-   )
+   ;; )
 
 ;; Specific base cases
 
@@ -275,9 +275,9 @@
 ;;
 ;; Additionally, Algebraic Normal Form checking is taking place "for
 ;; free", meaning that it is not accounted into the budget.
-(= (bc $ab $rb (MkBudget $size $depth) (: (cet $fp $gp) (≗ (∧ $f $g) $x ⊤)))
-   ;; (trace! (👁 bc $ab $rb (MkBudget $size $depth)
-   ;;            (: (cet $fp $gp) (≗ (∧ $f $g) $x ⊤)))
+(= (bc $ab $rb (MkBudget $size $depth) (: (cet $fprf $gprf) (≗ (∧ $f $g) $x ⊤)))
+   ;; (trace! (👁 bc [cet] $ab $rb (MkBudget $size $depth)
+   ;;            (: (cet $fprf $gprf) (≗ (∧ $f $g) $x ⊤)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Recurse on premise 1 to make sure that $f evaluates
@@ -298,7 +298,74 @@
               ;; to be already be in algebraic normal form.
               (True (isInductiveANF (∧ $f $g))))
          ;; Build conclusion
-         (, (MkBudget $gsize $gdepth) (: (cet $fp $gp) (≗ (∧ $f $g) $x ⊤))))
+         (, (MkBudget $gsize $gdepth) (: (cet $fprf $gprf) (≗ (∧ $f $g) $x ⊤))))
+       ;; Not enough budget
+       (empty)))
+   ;; )
+
+;; Conjunction evaluation to ⊥ from left.  The query
+;;
+;; (≗ (∧ $f $g) $x ⊥)
+;;
+;; means that ((∧ $f $g) $x) evaluates to ⊥ and requires as premise
+;; that ($f $x) evaluates to ⊥.
+;;
+;; `cebl` stands for conjunction evaluates to bottom from left.
+;;
+;; Additionally, Algebraic Normal Form checking is taking place "for
+;; free", meaning that it is not accounted into the budget.
+(= (bc $ab $rb (MkBudget $size $depth) (: (cebl $fprf) (≗ (∧ $f $g) $x ⊥)))
+   ;; (trace! (👁 bc [cebl] $ab $rb (MkBudget $size $depth)
+   ;;            (: (cebl $fprf) (≗ (∧ $f $g) $x ⊥)))
+   (if (and (<= 2 $size) (<= 2 $depth))
+       ;; Enough budget
+       (let* (;; Recurse on premise 1 to make sure that $f evaluates
+              ;; to ⊥ on $x.  The budget only needs to be 1 (size and
+              ;; depth) since $f must be an atomic predicate according
+              ;; to ANF.
+              ((, (MkBudget 0 0) (: $fprf (≗ $f $x ⊥)))
+               (bc $ab $rb (MkBudget 1 1) (: $fprf (≗ $f $x ⊥))))
+              ;; Check whether $f is a contingent atomic predicate
+              (True (isContingentAtomicPredicate $f))
+              ;; Check that (∧ $f $g) is in algebraic normal form,
+              ;; even though it might be not be closed since $g is
+              ;; untouched.
+              (True (isInductiveANF (∧ $f $g))))
+         ;; Build conclusion
+         (, (MkBudget (- $size 2) (- $depth 1)) (: (cebl $fprf) (≗ (∧ $f $g) $x ⊥))))
+       ;; Not enough budget
+       (empty)))
+   ;; )
+
+;; Conjunction evaluation to ⊥ from right.  The query
+;;
+;; (≗ (∧ $f $g) $x ⊥)
+;;
+;; means that ((∧ $f $g) $x) evaluates to ⊥ and requires as premise
+;; that ($g $x) evaluates to ⊥.
+;;
+;; `cebr` stands for conjunction evaluates to bottom from right.
+;;
+;; Additionally, Algebraic Normal Form checking is taking place "for
+;; free", meaning that it is not accounted into the budget.
+(= (bc $ab $rb (MkBudget $size $depth) (: (cebr $gprf) (≗ (∧ $f $g) $x ⊥)))
+   ;; (trace! (👁 bc [cebr] $ab $rb (MkBudget $size $depth)
+   ;;            (: (cebr $gprf) (≗ (∧ $f $g) $x ⊥)))
+   (if (and (<= 2 $size) (<= 2 $depth))
+       ;; Enough budget
+       (let* (;; Recurse on premise 1 to make sure that $g evaluates
+              ;; to ⊥ on $x
+              ((, (MkBudget $gsize $gdepth) (: $gprf (≗ $g $x ⊥)))
+               (bc $ab $rb (MkBudget (- $size 1) (- $depth 1))
+                   (: $gprf (≗ $g $x ⊥))))
+              ;; Check whether $f could be a contingent atomic predicate
+              (True (isContingentAtomicPredicate $f))
+              ;; Check that (∧ $f $g) is in algebraic normal form,
+              ;; even though it might be not be closed since $f is
+              ;; untouched.
+              (True (isInductiveANF (∧ $f $g))))
+         ;; Build conclusion
+         (, (MkBudget $gsize $gdepth) (: (cebr $gprf) (≗ (∧ $f $g) $x ⊥))))
        ;; Not enough budget
        (empty)))
    ;; )
@@ -316,7 +383,7 @@
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab $rb (MkBudget $size $depth) (: (eetl $fprf $gprf) (≗ (⊻ $f $g) $x ⊤)))
    ;; (trace! (👁 bc $ab $rb (MkBudget $size $depth)
-   ;;            (: (eetl $fprf $gp) (≗ (⊻ $f $g) $x ⊤)))
+   ;;            (: (eetl $fprf $gprf) (≗ (⊻ $f $g) $x ⊤)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Recurse on premise 1 to make sure that $f evaluates
@@ -350,6 +417,8 @@
 ;; Additionally, Algebraic Normal Form checking is taking place "for
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab $rb (MkBudget $size $depth) (: (eetr $fprf $gprf) (≗ (⊻ $f $g) $x ⊤)))
+   ;; (trace! (👁 bc [eetr] $ab $rb (MkBudget $size $depth)
+   ;;            (: (eetr $fprf $gprf) (≗ (⊻ $f $g) $x ⊤)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Recurse on premise 1 to make sure that $f evaluates
@@ -369,6 +438,7 @@
          (, (MkBudget $gsize $gdepth) (: (eetr $fprf $gprf) (≗ (⊻ $f $g) $x ⊤))))
        ;; Not enough budget
        (empty)))
+   ;; )
 
 ;; Exclusive disjunction evaluation to ⊥ from top.  The query
 ;;
@@ -382,6 +452,8 @@
 ;; Additionally, Algebraic Normal Form checking is taking place "for
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab $rb (MkBudget $size $depth) (: (eebt $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
+   ;; (trace! (👁 bc [eebt] $ab $rb (MkBudget $size $depth)
+   ;;            (: (eebt $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Recurse on premise 1 to make sure that $f evaluates
@@ -401,6 +473,7 @@
          (, (MkBudget $gsize $gdepth) (: (eebt $fprf $gprf) (≗ (⊻ $f $g) $x ⊥))))
        ;; Not enough budget
        (empty)))
+   ;; )
 
 ;; Exclusive disjunction evaluation to ⊥ from bottom.  The query
 ;;
@@ -414,6 +487,8 @@
 ;; Additionally, Algebraic Normal Form checking is taking place "for
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab $rb (MkBudget $size $depth) (: (eebb $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
+   ;; (trace! (👁 bc [eebb] $ab $rb (MkBudget $size $depth)
+   ;;            (: (eebb $fprf $gprf) (≗ (⊻ $f $g) $x ⊥)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Recurse on premise 1 to make sure that $f evaluates
@@ -433,6 +508,7 @@
          (, (MkBudget $gsize $gdepth) (: (eebb $fprf $gprf) (≗ (⊻ $f $g) $x ⊥))))
        ;; Not enough budget
        (empty)))
+   ;; )
 
 ;; Product.  In the query
 ;;
@@ -445,7 +521,7 @@
 ;; in order to view it as flattened and to avoid deeper queries buried
 ;; in the left associativity to require a higher depth.
 (= (bc $ab $rb (MkBudget $size $depth) (: (, $x $y) (, $a $b)))
-   (trace! (👁 bc [prod] $ab $rb (MkBudget $size $depth) (: (, $x $y) (, $a $b)))
+   ;; (trace! (👁 bc [prod] $ab $rb (MkBudget $size $depth) (: (, $x $y) (, $a $b)))
    (if (and (<= 3 $size) (<= 1 $depth))
        ;; Enough budget
        (let* (;; Recurse on $x
@@ -458,4 +534,4 @@
          (, (MkBudget $ysize (min $xdepth $ydepth)) (: (, $x $y) (, $a $b))))
        ;; Not enough budget
        (empty)))
-   )
+   ;; )
