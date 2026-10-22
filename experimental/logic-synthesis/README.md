@@ -79,7 +79,8 @@ the query looks like
            (≗ $pred 3 ⊥))))))
 ```
 
-For a maximum difficulty of binary synthesis get the following results:
+For a maximum difficulty of binary synthesis we get the following
+results:
 
 | Tabling | `trace!` calls | Wall time | Tests |
 |---|---|---|---|
@@ -89,4 +90,17 @@ For a maximum difficulty of binary synthesis get the following results:
 which in terms of number of backward chainer calls is considerably
 better than [test-anf-prod.metta](test-anf-prod.metta).
 
-For a maximum difficulty of ternary synthesis get the following results:
+For a maximum difficulty of ternary synthesis we get the following
+results:
+
+| Tabling | `trace!` calls | Wall time | Tests |
+|---|---|---|---|
+| enabled | 1,941 | 0.79 s | 17 ✅ / 0 ❌ |
+| disabled | 162,634 | 2.54 s | 17 ✅ / 0 ❌ |
+| enabled | 0 | 0.66 s | 17 ✅ / 0 ❌ |
+| disabled | 0 | 1.02 s | 17 ✅ / 0 ❌ |
+
+To see how far we can do we create an even parity problem synthesis
+parameterized by the number of input features.  At 4 features, the
+search space of candidates in ANF is only 4096, but at 5 features it
+climbs to 4294967296 which should be intractable.
