@@ -32,7 +32,7 @@ explodes.
 
 See the table below:
 
-| Full | Tabling | `trace!` calls (`👁`) | Wall time | Tests |
+| Full | Tabling | `trace!` calls | Wall time | Tests |
 |---|---|---|---|---|
 | disabled | enabled | 843 | 0.65 s | 42 ✅ / 0 ❌ |
 | disabled | disabled | 432,430 | 5.20 s | 42 ✅ / 0 ❌ |
