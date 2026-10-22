@@ -5,7 +5,7 @@
 !(translatePredicate (set_prolog_flag occurs_check True))
 
 ;; Import anf.metta
-!(import &self ./anf.metta)
+!(import! &self ./anf.metta)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;; ;;
