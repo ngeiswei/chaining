@@ -9,7 +9,7 @@
 ;; !(memoize bc)
 ;; !(config-memoize (unique-limit 10000) (strategy wtinylfu) (size-limit 5))
 
-;; Import tabling library (2x faster)
+;; Import and enable tabling library (2x faster)
 !(import! &self (library lib_tabling))
 !(tabled (bc $ab $rb $budget $query))
 
