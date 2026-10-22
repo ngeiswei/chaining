@@ -100,7 +100,21 @@ results:
 | enabled | 0 | 0.66 s | 17 ✅ / 0 ❌ |
 | disabled | 0 | 1.02 s | 17 ✅ / 0 ❌ |
 
-To see how far we can do we create an even parity problem synthesis
+To see how far we can go we create an even parity problem synthesis
 parameterized by the number of input features.  At 4 features, the
 search space of candidates in ANF is only 4096, but at 5 features it
-climbs to 4294967296 which should be intractable.
+climbs to 4294967296 which is intractable.  Results of running
+[test-anf-prod-prebuild-parity.metta](test-anf-prod-prebuild-parity.metta)
+precisely indicate that:
+
+| N | Result | Wall time |
+|---|---|---|
+| 1 | (⊻ f1 𝕋) | 0.6 |
+| 2 | (⊻ f1 (⊻ f2 𝕋)) | 0.6 |
+| 3 | (⊻ f1 (⊻ f2 (⊻ f3 𝕋))) | 0.7s |
+| 4 | (⊻ f1 (⊻ f2 (⊻ f3 (⊻ f4 𝕋)))) | 3.9s |
+| 5 | Memory Error | 294.3s |
+
+### Representing truth table as map
+
+NEXT
