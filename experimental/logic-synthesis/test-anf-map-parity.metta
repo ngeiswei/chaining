@@ -52,7 +52,7 @@
 ;;   - (⊻ f1 (⊻ f2 (⊻ f3 (⊻ f4 (⊻ f5 𝕋)))))
 ;;
 ;; When tabling is enabled, with enough RAM it can go until N=7.  For
-;; that one may need to increase the stack and the table limit of
+;; that, one may need to increase the stack and the table limit of
 ;; PeTTa, for instance:
 ;;
 ;; ```bash
@@ -179,4 +179,4 @@
 !(trace! (query (buildParityQuery (N))) ())
 
 ;; Run the chainer
-!(bc &ab (MkBudget (SIZE) (DEPTH)) (buildParityQuery (N)))
+!(once (bc &ab (MkBudget (SIZE) (DEPTH)) (buildParityQuery (N))))
