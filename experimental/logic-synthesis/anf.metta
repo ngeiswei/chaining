@@ -27,6 +27,10 @@
 (= (getSndArg ($f $x1 $x2)) $x2)
 (= (getSndArg ($f $x1 $x2 $x3)) $x2)
 
+;; Output the completement of ⊤ and ⊥
+(= (negate ⊤) ⊥)
+(= (negate ⊥) ⊤)
+
 ;; Check if $x is a binary call with a given operator.  It works on
 ;; any term, including those containing free variables.
 (= (isBinaryOp $op $term)
