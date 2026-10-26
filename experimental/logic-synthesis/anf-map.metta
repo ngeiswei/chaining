@@ -37,10 +37,10 @@
 ;; Output to input Processing ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Given a list $xs of elements in {⊤, ⊥, VARIABLE} calculate a list
+;; Given a list $ys of elements in {⊤, ⊥, VARIABLE} calculate a list
 ;; $fys so that each element of $fys is:
 ;;
-;; - ⊤ if the corresponding element of $xs is ⊤.
+;; - ⊤ if the corresponding element of $ys is ⊤.
 ;;
 ;; - Undetermined (a fresh variable) otherwise.
 ;;
@@ -49,22 +49,24 @@
 ;; TODO: the Cons/Nil encoding is an expression, not a runtime list,
 ;; so (List Boolean) is rejected by the type checker.  %Undefined%
 ;; is used until the representation is settled.
-(: co2i1 (-> %Undefined%                ; $xs
+(: co2i1 (-> %Undefined%                ; $ys
              %Undefined%))              ; $fys
 (= (co2i1 Nil) Nil)
-(= (co2i1 (Cons $x $xs))
-   (case (get-metatype $x)
-     ((Variable (Cons $fy (co2i1 $xs)))
-      (Symbol (Cons (if (== $x ⊤) ⊤ $fy) (co2i1 $xs)))
+(= (co2i1 (Cons $y $ys))
+   ;; (trace! (👁 co2i1 (Cons $y $ys))
+   (case (get-metatype $y)
+     ((Variable (Cons $fy (co2i1 $ys)))
+      (Symbol (Cons (if (== $y ⊤) ⊤ $fy) (co2i1 $ys)))
       ($else (trace! "Error: should not happen, it is probably a bug" Nil)))))
+   ;; )
 
-;; Given two lists $xs of elements in {⊤, ⊥, VARIABLE} and $fxs of
+;; Given two lists $ys of elements in {⊤, ⊥, VARIABLE} and $fys of
 ;; elements in {⊤, ⊥}, calculate a list $gys so that each element of
 ;; $gys is:
 ;;
-;; - ⊤ if the corresponding element of $xs is ⊤.
+;; - ⊤ if the corresponding element of $ys is ⊤.
 ;;
-;; - ⊥ if the corresponding element of $xs is ⊥ and the corresponding
+;; - ⊥ if the corresponding element of $ys is ⊥ and the corresponding
 ;;   element of $fys is ⊤.
 ;;
 ;; - Undetermined (a fresh variable) otherwise.
@@ -72,49 +74,72 @@
 ;; co2i2 stands for conjunction output to input of premise 2.
 ;;
 ;; Both $xs and $fys are assumed to be of same length.
-(: co2i2 (-> %Undefined%                ; $xs
+(: co2i2 (-> %Undefined%                ; $ys
              %Undefined%                ; $fys
              %Undefined%))              ; $gys
 (= (co2i2 Nil Nil) Nil)
-(= (co2i2 (Cons $x $xs) (Cons $fy $fys))
-   (case (get-metatype $x)
-     ((Variable (Cons $gy (co2i2 $xs $fys)))
-      (Symbol (Cons (if (== $x ⊤)
+(= (co2i2 (Cons $y $ys) (Cons $fy $fys))
+   ;; (trace! (👁 co2i2 (Cons $y $ys) (Cons $fy $fys))
+   (case (get-metatype $y)
+     ((Variable (Cons $gy (co2i2 $ys $fys)))
+      (Symbol (Cons (if (== $y ⊤)
                         ⊤
                         ;; In this case $x is ⊥
-                        (if (== $fy ⊤) ⊥ $gy)) (co2i2 $xs $fys)))
+                        (if (== $fy ⊤) ⊥ $gy)) (co2i2 $ys $fys)))
       ($else (trace! "Error: should not happen, it is probably a bug" Nil)))))
+   ;; )
 
-;; Given a list $xs in {⊤, ⊥, VARIABLE} calculate a list of $gys so
+;; Given a list $ys in {⊤, ⊥, VARIABLE} calculate a list of $gys so
 ;; that each element of $gys is a fresh variable.
 ;;
 ;; eo2i1 stands for exclusive output to input of premise 1.
-(: eo2i1 (-> %Undefined%                ; $xs
+(: eo2i1 (-> %Undefined%                ; $ys
              %Undefined%))              ; $fys
 (= (eo2i1 Nil) Nil)
-(= (eo2i1 (Cons $x $xs)) (Cons $fy (eo2i1 $xs)))
+(= (eo2i1 (Cons $y $ys))
+   ;; (trace! (👁 eo2i1 (Cons $y $ys))
+   (Cons $fy (eo2i1 $ys)))
+   ;; )
 
-;; Given two lists $xs and $fys of elements in {⊤, ⊥, VARIABLE}
+;; Given two lists $ys and $fys of elements in {⊤, ⊥, VARIABLE}
 ;; calculate a list $gys so that each element of $gys is:
 ;;
 ;; - the completement of the corresponding element of $fys if the
-;;   corresponding element of $xs is ⊤.
+;;   corresponding element of $ys is ⊤.
 ;;
 ;; - the same as the corresponding element of $fys if the
-;;   corresponding element of $xs is ⊥.
+;;   corresponding element of $ys is ⊥.
 ;;
 ;; eo2i2 stands for exclusive output to input of premise 2.
 ;;
-;; Both $xs and $fys are assumed to be of same length.
-(: eo2i2 (-> %Undefined%                ; $xs
+;; Both $ys and $fys are assumed to be of same length.
+(: eo2i2 (-> %Undefined%                ; $ys
              %Undefined%                ; $fys
              %Undefined%))              ; $gys
 (= (eo2i2 Nil Nil) Nil)
-(= (eo2i2 (Cons $x $xs) (Cons $fy $fys))
-   (case (get-metatype $x)
-     ((Variable (Cons $gy (eo2i2 $xs $fys)))
-      (Symbol (Cons (if (== $x ⊤) (negate $fy) $fy) (eo2i2 $xs $fys)))
+(= (eo2i2 (Cons $y $ys) (Cons $fy $fys))
+   ;; (trace! (👁 eo2i2 (Cons $y $ys) (Cons $fy $fys))
+   (case (get-metatype $y)
+     ((Variable (Cons $gy (eo2i2 $ys $fys)))
+      (Symbol (Cons (if (== $y ⊤) (negate $fy) $fy) (eo2i2 $ys $fys)))
       ($else (trace! "Error: should not happen, it is probably a bug" Nil)))))
+   ;; )
+
+;; Synthesis (input to output): the actual map of a composite
+;; expression, computed element-wise from its operands' maps.
+(: ci2o (-> %Undefined%                 ; $fys
+            %Undefined%                 ; $gys
+            %Undefined%))               ; $ys
+(= (ci2o Nil Nil) Nil)
+(= (ci2o (Cons $fy $fys) (Cons $gy $gys))
+   (Cons (if (== $fy ⊤) $gy ⊥) (ci2o $fys $gys)))
+
+(: ei2o (-> %Undefined%                 ; $fys
+            %Undefined%                 ; $gys
+            %Undefined%))               ; $ys
+(= (ei2o Nil Nil) Nil)
+(= (ei2o (Cons $fy $fys) (Cons $gy $gys))
+   (Cons (if (== $fy $gy) ⊥ ⊤) (ei2o $fys $gys)))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Backward Chainer ;;
@@ -185,7 +210,11 @@
               ;; Make sure that (∧ $f $g) is in algebraic normal form,
               ;; a shallow test is used because $f and $g are assumed
               ;; to be already be in algebraic normal form.
-              (True (isInductiveANF (∧ $f $g))))
+              (True (isInductiveANF (∧ $f $g)))
+              ;; Now that $fys and $gys are fully determined,
+              ;; calculate $ys as well, in case it was not fully
+              ;; determined as well.
+              ($ys (ci2o $fys $gys)))
          ;; Build conclusion
          (, (MkBudget $gsize $gdepth)
             (: (ce $fprf $gprf) (≗ map (∧ $f $g) $xs $ys))))
@@ -215,7 +244,7 @@
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab (MkBudget $size $depth)
        (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys)))
-   ;; (trace! (👁 bc $ab (MkBudget $size $depth)
+   ;; (trace! (👁 bc [ee] $ab (MkBudget $size $depth)
    ;;            (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
@@ -235,7 +264,11 @@
                (bc $ab (MkBudget (+ $fsize 1) (- $depth 1))
                    (: $gprf (≗ map $g $xs $gys))))
               ;; Make sure that (⊻ $f $g) is in algebraic normal form,
-              (True (isInductiveANF (⊻ $f $g))))
+              (True (isInductiveANF (⊻ $f $g)))
+              ;; Now that $fys and $gys are fully determined,
+              ;; calculate $ys as well, in case it was not fully
+              ;; determined as well.
+              ($ys (ei2o $fys $gys)))
          ;; Build conclusion
          (, (MkBudget $gsize $gdepth)
             (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys))))
