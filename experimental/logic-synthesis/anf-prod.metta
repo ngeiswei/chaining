@@ -35,9 +35,9 @@
                 Number                 ; Depth budget
                 Budget))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; PLN Backward Chainer ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;
+;; Backward Chainer ;;
+;;;;;;;;;;;;;;;;;;;;;;
 
 ;; ;; Type signature
 ;; (: bc (-> $a                     ; Axiom base
