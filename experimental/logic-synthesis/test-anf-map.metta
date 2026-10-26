@@ -108,3 +108,45 @@
      (: (ee fᵢₒ tet) (≗ map (⊻ f 𝕋)
                         (Cons 0 (Cons 1 Nil))
                         (Cons ⊤ (Cons ⊥ Nil))))))
+;;;;;;;;;;;;;;;;;;;;;;
+;; Binary synthesis ;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+;; Define axiom base
+!(bind! &ab2 (new-space))
+!(add-atom &ab2 (: tet (≗ map 𝕋
+                          (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                          (Cons ⊤ (Cons ⊤ (Cons ⊤ (Cons ⊤ Nil)))))))
+!(add-atom &ab2 (: feb (≗ map 𝔽
+                          (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                          (Cons ⊥ (Cons ⊥ (Cons ⊥ (Cons ⊥ Nil)))))))
+!(add-atom &ab2 (: fᵢₒ (≗ map f
+                          (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                          (Cons ⊥ (Cons ⊥ (Cons ⊤ (Cons ⊤ Nil)))))))
+!(add-atom &ab2 (: gᵢₒ (≗ map g
+                          (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                          (Cons ⊥ (Cons ⊤ (Cons ⊥ (Cons ⊤ Nil)))))))
+
+;; Test binary synthesis of (∧ f g) given four data points
+!(test
+  (bc &ab2 (MkBudget 3 2)
+      (: $prf (≗ map $pred
+                 (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                 (Cons ⊥ (Cons ⊥ (Cons ⊥ (Cons ⊤ Nil)))))))
+  (, (MkBudget 0 0)
+     (: (ce fᵢₒ gᵢₒ)
+        (≗ map (∧ f g)
+           (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+           (Cons ⊥ (Cons ⊥ (Cons ⊥ (Cons ⊤ Nil))))))))
+
+;; Test binary synthesis of (¬ (∧ f g)) given four data points
+!(test
+  (bc &ab2 (MkBudget 5 3)
+      (: $prf (≗ map $pred
+                 (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+                 (Cons ⊤ (Cons ⊤ (Cons ⊤ (Cons ⊥ Nil)))))))
+  (, (MkBudget 0 0)
+     (: (ee tet (ce fᵢₒ gᵢₒ))
+        (≗ map (⊻ 𝕋 (∧ f g))
+           (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil))))
+           (Cons ⊤ (Cons ⊤ (Cons ⊤ (Cons ⊥ Nil))))))))
