@@ -129,12 +129,12 @@
 
 ;; Generic base case
 (= (bc $ab (MkBudget $size $depth) (: $x $a))
-   (trace! (👁 bc [base] $ab (MkBudget $size $depth) (: $x $a))
+   ;; (trace! (👁 bc [base] $ab (MkBudget $size $depth) (: $x $a))
    (if (and (<= 1 $size) (<= 1 $depth))
        ;; Look for $x within the axiom base
        (match $ab (: $x $a) (, (MkBudget (- $size 1) (- $depth 1)) (: $x $a)))
        (empty)))
-   )
+   ;; )
 
 ;; Specialized recursive steps
 
@@ -161,8 +161,8 @@
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab (MkBudget $size $depth)
        (: (ce $fprf $gprf) (≗ map (∧ $f $g) $xs $ys)))
-   (trace! (👁 bc [ce] $ab (MkBudget $size $depth)
-              (: (ce $fprf $gprf) (≗ map (∧ $f $g) $xs $ys)))
+   ;; (trace! (👁 bc [ce] $ab (MkBudget $size $depth)
+   ;;            (: (ce $fprf $gprf) (≗ map (∧ $f $g) $xs $ys)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Calculate $fys to be ⊤ where $ys is ⊤, and
@@ -191,7 +191,7 @@
             (: (ce $fprf $gprf) (≗ map (∧ $f $g) $xs $ys))))
        ;; Not enough budget
        (empty)))
-   )
+   ;; )
 
 ;; Exclusive disjunction evaluation.  The query
 ;;
@@ -215,8 +215,8 @@
 ;; free", meaning that it is not accounted into the budget.
 (= (bc $ab (MkBudget $size $depth)
        (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys)))
-   (trace! (👁 bc $ab (MkBudget $size $depth)
-              (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys)))
+   ;; (trace! (👁 bc $ab (MkBudget $size $depth)
+   ;;            (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys)))
    (if (and (<= 3 $size) (<= 2 $depth))
        ;; Enough budget
        (let* (;; Calculate $fys to be filled with fresh variables
@@ -241,4 +241,4 @@
             (: (ee $fprf $gprf) (≗ map (⊻ $f $g) $xs $ys))))
        ;; Not enough budget
        (empty)))
-   )
+   ;; )
