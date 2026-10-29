@@ -24,6 +24,50 @@ class TestTruthTable(unittest.TestCase):
         self.assertTrue(eq(fn_of("(a ∨ b) ∧ (a ∨ c)"), fn_of("a ∨ (b ∧ c)")))
 
 
+class TestMask(unittest.TestCase):
+    """``BoolFunc.mask`` is the all-ones truth table: 2**(2**n) - 1 bits."""
+
+    def test_mask_is_two_to_the_two_to_the_n_minus_one(self):
+        for n in range(0, 6):
+            fn = BoolFunc(tuple("abcdef"[:n]), 0)
+            self.assertEqual(fn.mask, 2 ** (2 ** n) - 1, f"n={n}")
+
+    def test_mask_values(self):
+        expected = {0: 1, 1: 3, 2: 15, 3: 255, 4: 65535}
+        for n, want in expected.items():
+            self.assertEqual(BoolFunc(tuple("abcd"[:n]), 0).mask, want)
+
+    def test_mask_does_not_depend_on_values(self):
+        # mask is a property of the variable tuple only, not of the function
+        a = BoolFunc(UNI, 0)
+        b = BoolFunc(UNI, 0b101)
+        self.assertEqual(a.mask, b.mask)
+
+    def test_mask_is_the_tautology(self):
+        for s in ("a ∨ ¬a", "1"):
+            fn = fn_of(s)
+            self.assertEqual(fn.tt, fn.mask)
+            self.assertTrue(is_one(fn))
+
+    def test_mask_is_never_the_contradiction(self):
+        for n in range(0, 5):
+            fn = BoolFunc(tuple("abcd"[:n]), 0)
+            self.assertEqual(fn.tt, 0)
+            self.assertNotEqual(fn.mask, 0)
+            self.assertTrue(is_zero(fn))
+
+    def test_mask_bit_count(self):
+        # exactly one bit per assignment of the n variables
+        for n in range(0, 5):
+            self.assertEqual(BoolFunc(tuple("abcd"[:n]), 0).mask.bit_count(), 2 ** n)
+
+    def test_mask_of_empty_universe(self):
+        # n = 0: a single assignment (the empty one), so mask == 1 == True
+        fn = BoolFunc((), 0)
+        self.assertEqual(fn.n, 0)
+        self.assertEqual(fn.mask, 1)
+
+
 class TestCofactor(unittest.TestCase):
     def test_independent_variable(self):
         f = fn_of("a")
