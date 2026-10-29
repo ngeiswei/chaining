@@ -257,37 +257,48 @@ input   : ((a ∨ b) ∧ (c ∨ d))
 rho     : 4 literals
 verdict : MINIMAL
 reason  : ρ(((a ∨ b) ∧ (c ∨ d))) = 4 equals the universal lower bound α+2β = 4; hence no smaller factored form exists.
+time    : 0.060 ms
 certified minimum literal count: 4
 
 input   : ((a ∧ ¬b) ∨ (¬a ∧ b))
 rho     : 4 literals
 verdict : MINIMAL
 reason  : ρ(((a ∧ ¬b) ∨ (¬a ∧ b))) = 4 equals the universal lower bound α+2β = 4; hence no smaller factored form exists.
+time    : 0.018 ms
 certified minimum literal count: 4
 
 input   : ((a ∨ b) ∧ (a ∨ c))
 rho     : 4 literals
 verdict : NOT_MINIMAL
 reason  : Shannon split on a reconstructs (a ∨ (b ∧ c)) with 3 < 4 literals.
+time    : 0.110 ms
 smaller : (a ∨ (b ∧ c))  (3 literals)
 
 input   : (a ∧ a)
 rho     : 2 literals
 verdict : NOT_MINIMAL
 reason  : local folding yields a with 1 < 2 literals.
+time    : 0.008 ms
 smaller : a  (1 literals)
 
 input   : ((a ∧ (b ∨ c)) ∨ (b ∧ c))
 rho     : 5 literals
 verdict : UNKNOWN
 reason  : cost 5 is above the lower bound 3 and no inductive certificate closed the gap (cross-boundary Boolean division would be required).
+time    : 0.110 ms
 
 input   : ((a ∧ (b ∨ c)) ∨ (b ∧ c))
 rho     : 5 literals
 verdict : MINIMAL
 reason  : exhaustive search up to 4 literals found no smaller equivalent factored form.
+time    : 331.710 ms
 certified minimum literal count: 5
 ```
+
+(The `time` line is the elapsed wall-clock time of the certification, in
+milliseconds; absolute values are machine-dependent.  Note the two orders of
+magnitude between the inductive `UNKNOWN` verdict and the exhaustive
+fallback — that difference *is* the inductive pruning.)
 
 The **majority-3** example is the instructive one.  `α = 3, β = 0`, so
 `LB = 3`, but the true minimum is `5` (`a(b∨c) ∨ bc`).  The gap `3 < 5` is
@@ -330,11 +341,22 @@ r.input_cost                                # rho of the input expression
 r.cost                                      # rho of r.best
 r.best                                      # smaller equivalent form if NOT_MINIMAL
 r.reason                                    # human-readable justification
+r.elapsed                                   # seconds spent certifying (float)
 
 # persistent, configurable certifier (memoised across calls):
 c = Certifier(universe=("a", "b", "c"), exact=False, search_budget=500_000)
 c.certify("a ∨ (b ∧ c)")
 ```
+
+### Timing
+
+`Result.elapsed` is the wall-clock time in seconds spent deciding that
+expression, including all recursive sub-decisions and any exact fallback.
+`render_result` prints it as `time : … ms`.  Because results are memoised per
+`Certifier`, a repeated call on an already-decided expression returns the
+cached `Result` with the *original* `elapsed` value (i.e. it reports the cost
+of the decision, not of the lookup).  Use a fresh `Certifier` to measure a
+cold run.
 
 Useful re-exports: `parse`, `to_str`, `ascii_repr`, `rho`, `vars_of`,
 `simplify`, `cofactor_expr`, `truth_table`, `BoolFunc`, `cofactor`, `eq`,

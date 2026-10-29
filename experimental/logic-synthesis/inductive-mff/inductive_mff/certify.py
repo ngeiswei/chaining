@@ -20,6 +20,7 @@ ordered ∧/∨ binary trees (complete, but exponential; bounded by a budget).
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
@@ -45,6 +46,7 @@ class Result:
     best: Node          # best known equivalent form (== expr unless smaller)
     fn: BoolFunc        # semantics of `expr`
     reason: str
+    elapsed: float = 0.0  # seconds spent certifying this expression
 
     @property
     def input_cost(self) -> int:
@@ -170,7 +172,9 @@ class Certifier:
         hit = self._memo.get(key)
         if hit is not None:
             return hit
+        t0 = time.perf_counter()
         res = self._decide_uncached(expr, univ)
+        res.elapsed = time.perf_counter() - t0
         self._memo[key] = res
         return res
 
@@ -335,6 +339,7 @@ def render_result(res: Result) -> str:
         f"rho     : {res.input_cost} literals",
         f"verdict : {res.verdict.value}",
         f"reason  : {res.reason}",
+        f"time    : {res.elapsed * 1e3:.3f} ms",
     ]
     if res.verdict == Verdict.NOT_MINIMAL:
         lines.append(f"smaller : {to_str(res.best)}  ({res.cost} literals)")

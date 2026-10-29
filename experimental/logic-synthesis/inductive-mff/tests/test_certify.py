@@ -131,6 +131,24 @@ class TestExactCompletenessSmall(unittest.TestCase):
                 check_smaller_equivalent(r)
 
 
+class TestTiming(unittest.TestCase):
+    def test_elapsed_is_recorded(self):
+        r = certify("(a ∨ b) ∧ (a ∨ c)")
+        self.assertIsInstance(r.elapsed, float)
+        self.assertGreaterEqual(r.elapsed, 0.0)
+
+    def test_elapsed_in_seconds_and_monotone_with_work(self):
+        # The exact fallback does vastly more work than a lower-bound hit, so
+        # its elapsed time must be recorded as strictly larger.
+        quick = certify("(a ∨ b) ∧ (c ∨ d)")
+        slow = certify("(a ∧ (b ∨ c)) ∨ (b ∧ c)", exact=True)
+        self.assertGreater(slow.elapsed, quick.elapsed)
+
+    def test_render_includes_time(self):
+        from inductive_mff import render_result
+        self.assertIn("time", render_result(certify("a ∧ a")))
+
+
 class TestRender(unittest.TestCase):
     def test_render_not_minimal(self):
         from inductive_mff import render_result
