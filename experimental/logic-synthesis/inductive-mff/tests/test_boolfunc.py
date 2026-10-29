@@ -73,6 +73,13 @@ class TestCofactor(unittest.TestCase):
         f = fn_of("a")
         self.assertTrue(eq(cofactor(f, "b", 0), f))
 
+    def test_absorbs_into_or_when_a_positive(self):
+        # (a ∨ (b ∧ c)): a=1 makes the disjunction true, a=0 leaves b ∧ c.
+        f = fn_of("a ∨ (b ∧ c)")
+        self.assertTrue(eq(cofactor(f, "a", 0), fn_of("b ∧ c")))
+        self.assertTrue(eq(cofactor(f, "a", 1), fn_of("1")))
+        self.assertTrue(is_one(cofactor(f, "a", 1)))
+
     def test_majority_fixed(self):
         f = fn_of("(a ∨ b) ∧ (a ∨ c) ∧ (b ∨ c)")
         self.assertTrue(eq(cofactor(f, "a", 0), fn_of("b ∧ c")))
