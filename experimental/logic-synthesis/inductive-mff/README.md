@@ -371,11 +371,22 @@ Useful re-exports: `parse`, `to_str`, `ascii_repr`, `rho`, `vars_of`,
 python3 -m unittest discover -s tests -v        # stdlib, no dependencies
 # or, with pytest installed:
 python3 -m pytest
+
+# skip the exhaustive-search tests (~16 s -> ~0.7 s total):
+INDUCTIVE_MFF_SKIP_SLOW=1 python3 -m unittest discover -s tests
 ```
 
 The suite covers the parser, the semantic oracle (cofactor/classification),
 and the decision procedure, including the three verdicts and the exact
 fallback on the majority-3 boundary case.
+
+`TestSlowExact` (6 tests) is the only part that costs real time — about 6 s
+for the four-variable cases and 9 s for the five-variable composition.  It is
+there to pin down *completeness*: with `exact=True` the procedure must always
+answer `MINIMAL` or `NOT_MINIMAL` on these inputs, never `UNKNOWN`.  The
+cases are chosen so the inductive certificates genuinely cannot close the gap
+(consensus/absorption terms, majority-3), forcing the `Σ₂ᴾ`-hard search.  Set
+`INDUCTIVE_MFF_SKIP_SLOW=1` to run only the fast inductive tests.
 
 ---
 
